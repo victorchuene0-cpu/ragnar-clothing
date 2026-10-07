@@ -1,12 +1,11 @@
-// Replace every value below with YOUR Firebase project's config
-// (Firebase console → Project settings → General → Your apps → SDK setup).
+// Firebase project config for Ragnar Clothing
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBQgmmC8Uo5btq1o-VJregXFEcJBf4K98U",
+  authDomain: "ragnar-clothing.firebaseapp.com",
+  projectId: "ragnar-clothing",
+  storageBucket: "ragnar-clothing.firebasestorage.app",
+  messagingSenderId: "256832196991",
+  appId: "1:256832196991:web:3a5cdc30744d3e1905ca4a"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
