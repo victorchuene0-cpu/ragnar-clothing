@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ragnar — Owner Panel</title>
+<link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="admin-head wrap"><h2 style="font-size:18px;text-transform:uppercase;">Ragnar — Owner Panel</h2><a href="index.html" class="btn">View store</a></div>
+
+<div class="admin-shell" id="login-view">
+  <h2 style="margin-bottom:14px;">Sign in</h2>
+  <form class="admin-form" id="login-form">
+    <input type="email" id="login-email" placeholder="Email" required>
+    <input type="password" id="login-password" placeholder="Password" required>
+    <button type="submit" class="btn btn-primary" style="justify-content:center;">Sign in</button>
+  </form>
+  <p class="status-note" id="login-status"></p>
+</div>
+
+<div class="admin-shell" id="panel-view" style="display:none;max-width:700px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <h2>Manage catalog</h2>
+    <button class="btn" id="logout-btn">Sign out</button>
+  </div>
+  <form class="admin-form" id="product-form">
+    <div class="admin-row">
+      <input type="text" id="p-name" placeholder="Item name" required>
+      <select id="p-category" required>
+        <option value="">Category</option>
+        <option>Hoodies</option><option>Sweaters</option><option>Tracksuits</option><option>Hats</option>
+      </select>
+    </div>
+    <div class="admin-row">
+      <input type="number" id="p-price" placeholder="Price (R)" min="0" required>
+      <input type="text" id="p-note" placeholder="Note (optional)">
+    </div>
+    <button type="submit" class="btn btn-primary" style="justify-content:center;">Add item</button>
+  </form>
+  <table class="admin-table" id="admin-table">
+    <thead><tr><th>Item</th><th>Category</th><th>Price</th><th></th></tr></thead>
+    <tbody id="admin-table-body"></tbody>
+  </table>
+  <p class="status-note" id="admin-status"></p>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+const auth = firebase.auth();
+function fmtR(n){return "R"+Number(n).toLocaleString("en-ZA");}
+function setStatus(id,msg){const el=document.getElementById(id);el.textContent=msg;setTimeout(()=>el.textContent="",3000);}
+
+document.getElementById("login-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    await auth.signInWithEmailAndPassword(document.getElementById("login-email").value, document.getElementById("login-password").value);
+  } catch (err) { setStatus("login-status", "Sign-in failed — check email/password."); }
+});
+document.getElementById("logout-btn").addEventListener("click", () => auth.signOut());
+
+auth.onAuthStateChanged(user => {
+  document.getElementById("login-view").style.display = user ? "none" : "block";
+  document.getElementById("panel-view").style.display = user ? "block" : "none";
+  if (user) listenProducts();
+});
+
+document.getElementById("product-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const name = document.getElementById("p-name").value.trim();
+  const category = document.getElementById("p-category").value;
+  const price = Number(document.getElementById("p-price").value);
+  const note = document.getElementById("p-note").value.trim();
+  if (!name || !category || !price) return;
+  try {
+    await db.collection("products").add({ name, category, price, note, createdAt: Date.now() });
+    e.target.reset();
+    setStatus("admin-status", "Added.");
+  } catch (err) { setStatus("admin-status", "Couldn't save — are you signed in as the admin account?"); }
+});
+
+function listenProducts() {
+  db.collection("products").orderBy("createdAt", "asc").onSnapshot(snap => {
+    const body = document.getElementById("admin-table-body");
+    body.innerHTML = "";
+    snap.docs.forEach(d => {
+      const p = { id: d.id, ...d.data() };
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td></td><td></td><td></td><td></td>`;
+      tr.children[0].textContent = p.name;
+      tr.children[1].textContent = p.category;
+      tr.children[2].textContent = fmtR(p.price);
+      const delBtn = document.createElement("button");
+      delBtn.className = "del-btn"; delBtn.textContent = "Remove";
+      delBtn.addEventListener("click", () => db.collection("products").doc(p.id).delete());
+      tr.children[3].appendChild(delBtn);
+      body.appendChild(tr);
+    });
+  });
+}
+</script>
+</body>
+</html>
