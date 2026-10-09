@@ -140,21 +140,51 @@ document.getElementById("checkout-btn").addEventListener("click", (e) => {
   window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
 });
 
+const DEFAULT_SIZES = ["S", "M", "L", "XL"];
+function sizesFor(p) { return Array.isArray(p.sizes) && p.sizes.length ? p.sizes : DEFAULT_SIZES; }
+
 function buildProductCard(p) {
+  const sizes = sizesFor(p);
+  const soldOut = !!p.soldOut;
   const card = document.createElement("div");
-  card.className = "product-card";
+  card.className = "product-card" + (soldOut ? " sold-out" : "");
   card.innerHTML = `<div class="product-swatch"></div><div class="product-name"></div><div class="product-price"></div>
-    <div class="size-row">${["S","M","L","XL"].map(s => `<button type="button" class="size-pill" data-size="${s}">${s}</button>`).join("")}</div>
+    <div class="size-label">${sizes.length === 1 ? "Size" : "Choose a size"}</div>
+    <div class="size-row"></div>
+    <p class="size-error"></p>
     <button type="button" class="add-btn">Add to bag</button>`;
   card.querySelector(".product-name").textContent = p.name;
   card.querySelector(".product-price").textContent = fmtR(p.price) + (p.note ? " · " + p.note : "");
-  let size = "M";
-  const pills = card.querySelectorAll(".size-pill");
-  pills.forEach(pill => {
-    if (pill.dataset.size === size) pill.classList.add("active");
-    pill.addEventListener("click", () => { pills.forEach(x => x.classList.remove("active")); pill.classList.add("active"); size = pill.dataset.size; });
+
+  const row = card.querySelector(".size-row");
+  const err = card.querySelector(".size-error");
+  const btn = card.querySelector(".add-btn");
+  let size = sizes.length === 1 ? sizes[0] : null;   // never pre-pick a size for the customer
+  const pills = sizes.map(s => {
+    const pill = document.createElement("button");
+    pill.type = "button";
+    pill.className = "size-pill" + (s === size ? " active" : "");
+    pill.textContent = s;
+    pill.disabled = soldOut;
+    pill.addEventListener("click", () => {
+      pills.forEach(x => x.classList.remove("active"));
+      pill.classList.add("active");
+      size = s;
+      err.textContent = "";
+    });
+    row.appendChild(pill);
+    return pill;
   });
-  card.querySelector(".add-btn").addEventListener("click", () => addToCart(p, size));
+
+  if (soldOut) {
+    btn.textContent = "Sold out";
+    btn.disabled = true;
+  } else {
+    btn.addEventListener("click", () => {
+      if (!size) { err.textContent = "Pick a size first."; return; }
+      addToCart(p, size);
+    });
+  }
   return card;
 }
 function renderHomeTiles() {

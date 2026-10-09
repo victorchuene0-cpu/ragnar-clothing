@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ragnar — Owner Panel</title>
-<link rel="icon" href="logo.png" type="image/svg+xml">
+<link rel="icon" href="logo.png">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
@@ -26,7 +26,9 @@
     <h2>Manage catalog</h2>
     <button class="btn" id="logout-btn">Sign out</button>
   </div>
+
   <form class="admin-form" id="product-form">
+    <h3 id="form-title">Add a new item</h3>
     <div class="admin-row">
       <input type="text" id="p-name" placeholder="Item name" required>
       <select id="p-category" required>
@@ -36,15 +38,34 @@
     </div>
     <div class="admin-row">
       <input type="number" id="p-price" placeholder="Price (R)" min="0" required>
-      <input type="text" id="p-note" placeholder="Note (optional)">
+      <input type="text" id="p-note" placeholder="Note (optional, e.g. winter drop)">
     </div>
-    <button type="submit" class="btn btn-primary" style="justify-content:center;">Add item</button>
+
+    <div class="admin-label">Sizes available</div>
+    <div class="size-checks" id="size-checks">
+      <label><input type="checkbox" value="XS"> XS</label>
+      <label><input type="checkbox" value="S" checked> S</label>
+      <label><input type="checkbox" value="M" checked> M</label>
+      <label><input type="checkbox" value="L" checked> L</label>
+      <label><input type="checkbox" value="XL" checked> XL</label>
+      <label><input type="checkbox" value="XXL"> XXL</label>
+      <label><input type="checkbox" value="One size" id="size-one"> One size</label>
+    </div>
+    <input type="text" id="p-other-sizes" placeholder="Other sizes, separated by commas (e.g. 3XL, Kids 8)">
+
+    <label class="check-line"><input type="checkbox" id="p-soldout"> Mark as sold out</label>
+
+    <div class="admin-btn-row">
+      <button type="submit" class="btn btn-primary" id="save-btn">Add item</button>
+      <button type="button" class="btn" id="cancel-btn" style="display:none;">Cancel</button>
+    </div>
+    <p class="status-note" id="admin-status"></p>
   </form>
+
   <table class="admin-table" id="admin-table">
-    <thead><tr><th>Item</th><th>Category</th><th>Price</th><th></th></tr></thead>
+    <thead><tr><th>Item</th><th>Price</th><th>Sizes</th><th></th></tr></thead>
     <tbody id="admin-table-body"></tbody>
   </table>
-  <p class="status-note" id="admin-status"></p>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -53,55 +74,144 @@
 <script src="firebase-config.js"></script>
 <script>
 const auth = firebase.auth();
-function fmtR(n){return "R"+Number(n).toLocaleString("en-ZA");}
-function setStatus(id,msg){const el=document.getElementById(id);el.textContent=msg;setTimeout(()=>el.textContent="",3000);}
+const DEFAULT_SIZES = ["S", "M", "L", "XL"];
+let editingId = null;
+let productsById = {};
 
-document.getElementById("login-form").addEventListener("submit", async (e) => {
+function fmtR(n){return "R"+Number(n).toLocaleString("en-ZA");}
+function setStatus(id,msg){const el=document.getElementById(id);el.textContent=msg;setTimeout(()=>{el.textContent="";},4000);}
+const $ = (id) => document.getElementById(id);
+const sizeBoxes = () => Array.from(document.querySelectorAll("#size-checks input[type=checkbox]"));
+
+// ---------- Sign in ----------
+$("login-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   try {
-    await auth.signInWithEmailAndPassword(document.getElementById("login-email").value, document.getElementById("login-password").value);
+    await auth.signInWithEmailAndPassword($("login-email").value, $("login-password").value);
   } catch (err) { setStatus("login-status", "Sign-in failed — check email/password."); }
 });
-document.getElementById("logout-btn").addEventListener("click", () => auth.signOut());
+$("logout-btn").addEventListener("click", () => auth.signOut());
 
+let listening = false;
 auth.onAuthStateChanged(user => {
-  document.getElementById("login-view").style.display = user ? "none" : "block";
-  document.getElementById("panel-view").style.display = user ? "block" : "none";
-  if (user) listenProducts();
+  $("login-view").style.display = user ? "none" : "block";
+  $("panel-view").style.display = user ? "block" : "none";
+  if (user && !listening) { listening = true; listenProducts(); }
 });
 
-document.getElementById("product-form").addEventListener("submit", async (e) => {
+// ---------- Size checkboxes: "One size" can't be mixed with specific sizes ----------
+$("size-checks").addEventListener("change", (e) => {
+  const t = e.target;
+  if (t.id === "size-one" && t.checked) {
+    sizeBoxes().forEach(b => { if (b !== t) b.checked = false; });
+    $("p-other-sizes").value = "";
+  } else if (t.checked) {
+    $("size-one").checked = false;
+  }
+});
+$("p-other-sizes").addEventListener("input", () => {
+  if ($("p-other-sizes").value.trim()) $("size-one").checked = false;
+});
+
+function collectSizes() {
+  const picked = sizeBoxes().filter(b => b.checked).map(b => b.value);
+  const extra = $("p-other-sizes").value.split(",").map(s => s.trim()).filter(Boolean);
+  return Array.from(new Set(picked.concat(extra)));
+}
+function setSizes(sizes) {
+  const known = sizeBoxes().map(b => b.value);
+  sizeBoxes().forEach(b => { b.checked = sizes.includes(b.value); });
+  $("p-other-sizes").value = sizes.filter(s => !known.includes(s)).join(", ");
+}
+
+// ---------- Add / edit ----------
+function resetForm() {
+  editingId = null;
+  $("product-form").reset();
+  setSizes(DEFAULT_SIZES);
+  $("form-title").textContent = "Add a new item";
+  $("save-btn").textContent = "Add item";
+  $("cancel-btn").style.display = "none";
+}
+$("cancel-btn").addEventListener("click", resetForm);
+
+function startEdit(p) {
+  editingId = p.id;
+  $("p-name").value = p.name || "";
+  $("p-category").value = p.category || "";
+  $("p-price").value = p.price != null ? p.price : "";
+  $("p-note").value = p.note || "";
+  $("p-soldout").checked = !!p.soldOut;
+  setSizes(Array.isArray(p.sizes) && p.sizes.length ? p.sizes : DEFAULT_SIZES);
+  $("form-title").textContent = "Editing: " + p.name;
+  $("save-btn").textContent = "Save changes";
+  $("cancel-btn").style.display = "";
+  $("product-form").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+$("product-form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const name = document.getElementById("p-name").value.trim();
-  const category = document.getElementById("p-category").value;
-  const price = Number(document.getElementById("p-price").value);
-  const note = document.getElementById("p-note").value.trim();
-  if (!name || !category || !price) return;
+  const name = $("p-name").value.trim();
+  const category = $("p-category").value;
+  const price = Number($("p-price").value);
+  const note = $("p-note").value.trim();
+  const sizes = collectSizes();
+  const soldOut = $("p-soldout").checked;
+  if (!name || !category || !price) { setStatus("admin-status", "Name, category and price are required."); return; }
+  if (sizes.length === 0) { setStatus("admin-status", "Pick at least one size (or tick One size)."); return; }
+  const data = { name, category, price, note, sizes, soldOut };
   try {
-    await db.collection("products").add({ name, category, price, note, createdAt: Date.now() });
-    e.target.reset();
-    setStatus("admin-status", "Added.");
+    if (editingId) {
+      await db.collection("products").doc(editingId).update(data);
+      setStatus("admin-status", "Changes saved.");
+    } else {
+      await db.collection("products").add({ ...data, createdAt: Date.now() });
+      setStatus("admin-status", "Added.");
+    }
+    resetForm();
   } catch (err) { setStatus("admin-status", "Couldn't save — are you signed in as the admin account?"); }
 });
 
+// ---------- List ----------
 function listenProducts() {
   db.collection("products").orderBy("createdAt", "asc").onSnapshot(snap => {
-    const body = document.getElementById("admin-table-body");
+    const body = $("admin-table-body");
     body.innerHTML = "";
+    productsById = {};
     snap.docs.forEach(d => {
       const p = { id: d.id, ...d.data() };
+      productsById[p.id] = p;
+      const sizes = Array.isArray(p.sizes) && p.sizes.length ? p.sizes : DEFAULT_SIZES;
       const tr = document.createElement("tr");
-      tr.innerHTML = `<td></td><td></td><td></td><td></td>`;
-      tr.children[0].textContent = p.name;
-      tr.children[1].textContent = p.category;
-      tr.children[2].textContent = fmtR(p.price);
+      tr.innerHTML = `<td><span class="n"></span><span class="cell-sub c"></span></td><td></td><td></td><td><div class="row-actions"></div></td>`;
+      const nameEl = tr.querySelector(".n");
+      nameEl.textContent = p.name;
+      if (p.soldOut) {
+        const tag = document.createElement("span");
+        tag.className = "tag"; tag.textContent = "Sold out";
+        nameEl.appendChild(tag);
+      }
+      tr.querySelector(".c").textContent = p.category;
+      tr.children[1].textContent = fmtR(p.price);
+      tr.children[2].textContent = sizes.join(", ");
+
+      const editBtn = document.createElement("button");
+      editBtn.className = "del-btn"; editBtn.textContent = "Edit";
+      editBtn.addEventListener("click", () => startEdit(p));
       const delBtn = document.createElement("button");
       delBtn.className = "del-btn"; delBtn.textContent = "Remove";
-      delBtn.addEventListener("click", () => db.collection("products").doc(p.id).delete());
-      tr.children[3].appendChild(delBtn);
+      delBtn.addEventListener("click", async () => {
+        if (!confirm("Remove " + p.name + " from the store?")) return;
+        try {
+          await db.collection("products").doc(p.id).delete();
+          if (editingId === p.id) resetForm();
+        } catch (err) { setStatus("admin-status", "Couldn't remove — try again."); }
+      });
+      const actions = tr.querySelector(".row-actions");
+      actions.appendChild(editBtn); actions.appendChild(delBtn);
       body.appendChild(tr);
     });
-  });
+  }, () => setStatus("admin-status", "Couldn't load products — check your Firestore rules."));
 }
 </script>
 </body>
