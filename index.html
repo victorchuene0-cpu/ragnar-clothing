@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Ragnar Clothing</title>
-<link rel="icon" href="logo.png" type="image/svg+xml">
+<link rel="icon" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -84,7 +84,35 @@
 <div class="scrim" id="scrim"></div>
 <div class="cart-drawer" id="cart-drawer">
   <div class="cart-head"><h3 style="font-size:18px;text-transform:uppercase;">Your bag</h3><button class="cart-close" id="cart-close">&times;</button></div>
-  <div class="cart-items" id="cart-items"><p class="cart-empty">Your bag is empty.</p></div>
+  <div class="cart-scroll">
+    <div class="cart-items" id="cart-items"><p class="cart-empty">Your bag is empty.</p></div>
+    <form class="delivery-form" id="delivery-form" autocomplete="on" novalidate>
+      <h4>Delivery details</h4>
+      <div class="method-row">
+        <label><input type="radio" name="method" value="Delivery" checked> Delivery</label>
+        <label><input type="radio" name="method" value="Collection"> I'll collect</label>
+      </div>
+      <input type="text" id="d-name" placeholder="Full name" autocomplete="name">
+      <input type="tel" id="d-phone" placeholder="Contact number" autocomplete="tel">
+      <div id="address-fields">
+        <input type="text" id="d-street" placeholder="Street address / house number" autocomplete="street-address">
+        <input type="text" id="d-suburb" placeholder="Suburb / village / township" autocomplete="address-level3">
+        <input type="text" id="d-city" placeholder="City / town" autocomplete="address-level2">
+        <div class="two-col">
+          <select id="d-province" autocomplete="address-level1">
+            <option value="">Province</option>
+            <option>Eastern Cape</option><option>Free State</option><option>Gauteng</option>
+            <option>KwaZulu-Natal</option><option>Limpopo</option><option>Mpumalanga</option>
+            <option>Northern Cape</option><option>North West</option><option>Western Cape</option>
+          </select>
+          <input type="text" id="d-postal" placeholder="Postal code" inputmode="numeric" maxlength="4" autocomplete="postal-code">
+        </div>
+        <input type="text" id="d-notes" placeholder="Delivery notes (landmark, gate colour…)">
+      </div>
+      <p class="privacy-note">Saved on this device only, so you don't retype it next time. It's sent to us in your WhatsApp order and used only to deliver it.</p>
+      <p class="form-error" id="delivery-error"></p>
+    </form>
+  </div>
   <div class="cart-foot">
     <div class="cart-total"><span>Total</span><span id="cart-total">R0</span></div>
     <a href="#" id="checkout-btn" class="btn btn-primary" style="width:100%;justify-content:center;">Complete order via WhatsApp</a>

@@ -69,12 +69,74 @@ function closeCart() { document.getElementById("cart-drawer").classList.remove("
 document.getElementById("cart-toggle").addEventListener("click", openCart);
 document.getElementById("cart-close").addEventListener("click", closeCart);
 document.getElementById("scrim").addEventListener("click", closeCart);
+// ---------- Delivery details (kept on the customer's own device only) ----------
+const DETAILS_KEY = "ragnar_delivery_details";
+const FIELD_IDS = ["name", "phone", "street", "suburb", "city", "province", "postal", "notes"];
+const $d = (k) => document.getElementById("d-" + k);
+
+function getMethod() {
+  return document.querySelector('#delivery-form input[name="method"]:checked').value;
+}
+function toggleAddressFields() {
+  document.getElementById("address-fields").style.display = getMethod() === "Collection" ? "none" : "grid";
+}
+function saveDetails() {
+  const data = { method: getMethod() };
+  FIELD_IDS.forEach(k => { data[k] = $d(k).value.trim(); });
+  try { localStorage.setItem(DETAILS_KEY, JSON.stringify(data)); } catch (e) { /* storage blocked — fine */ }
+}
+function loadDetails() {
+  let data = null;
+  try { data = JSON.parse(localStorage.getItem(DETAILS_KEY) || "null"); } catch (e) { /* ignore */ }
+  if (!data) return;
+  FIELD_IDS.forEach(k => { if (data[k]) $d(k).value = data[k]; });
+  const radio = document.querySelector(`#delivery-form input[name="method"][value="${data.method}"]`);
+  if (radio) radio.checked = true;
+  toggleAddressFields();
+}
+document.querySelectorAll("#delivery-form input, #delivery-form select").forEach(el => {
+  el.addEventListener("input", saveDetails);
+  el.addEventListener("change", () => { saveDetails(); toggleAddressFields(); });
+});
+loadDetails();
+
+function validateDetails() {
+  const required = ["name", "phone"];
+  if (getMethod() === "Delivery") required.push("street", "suburb", "city", "province", "postal");
+  let firstBad = null;
+  FIELD_IDS.forEach(k => $d(k).classList.remove("invalid"));
+  required.forEach(k => {
+    if (!$d(k).value.trim()) {
+      $d(k).classList.add("invalid");
+      if (!firstBad) firstBad = $d(k);
+    }
+  });
+  const err = document.getElementById("delivery-error");
+  if (firstBad) {
+    err.textContent = "Please fill in the highlighted fields so we can deliver your order.";
+    firstBad.scrollIntoView({ block: "center", behavior: "smooth" });
+    firstBad.focus();
+    return false;
+  }
+  err.textContent = "";
+  return true;
+}
+
 document.getElementById("checkout-btn").addEventListener("click", (e) => {
   e.preventDefault();
   if (cart.length === 0) return;
+  if (!validateDetails()) return;
+  saveDetails();
   const lines = cart.map(i => `- ${i.name} (Size: ${i.size}) x${i.qty} — ${fmtR(i.price * i.qty)}`).join("\n");
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
-  const msg = `Hi! I'd like to order:\n${lines}\n\nTotal: ${fmtR(total)}\n\nMy name:\nMy delivery/collection details:`;
+  const method = getMethod();
+  const v = (k) => $d(k).value.trim();
+  let details = `Name: ${v("name")}\nContact: ${v("phone")}\n${method === "Collection" ? "Method: I'll collect" : "Method: Delivery"}`;
+  if (method === "Delivery") {
+    details += `\nAddress: ${v("street")}, ${v("suburb")}, ${v("city")}, ${v("province")}, ${v("postal")}`;
+    if (v("notes")) details += `\nNotes: ${v("notes")}`;
+  }
+  const msg = `Hi! I'd like to order:\n${lines}\n\nTotal: ${fmtR(total)}\n\n${details}`;
   window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
 });
 
