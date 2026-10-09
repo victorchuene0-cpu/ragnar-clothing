@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ragnar Clothing</title>
+<link rel="icon" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-row">
+    <a class="nav-brand" id="nav-home-btn"><img src="logo.png" alt="Ragnar"><span>Ragnar</span></a>
+    <div class="nav-links" id="nav-links">
+      <button class="nav-link" data-cat="">Home</button>
+      <button class="nav-link" data-cat="Hoodies">Hoodies</button>
+      <button class="nav-link" data-cat="Sweaters">Sweaters</button>
+      <button class="nav-link" data-cat="Tracksuits">Tracksuits</button>
+      <button class="nav-link" data-cat="Hats">Hats</button>
+    </div>
+    <button class="nav-cart" id="cart-toggle">Bag (<span id="cart-count">0</span>)</button>
+  </div>
+</nav>
+
+<main id="storefront">
+  <div class="page active" id="page-home">
+    <header class="hero">
+      <div class="wrap">
+        <img src="logo.png" alt="Ragnar Clothing" class="hero-logo">
+        <h1 class="title">Things we<br>don't talk about</h1>
+        <p class="tagline">Self-made streetwear carrying what's usually left unsaid. Cut and printed in small batches — no two drops the same.</p>
+        <div class="hero-cta">
+          <button class="btn btn-primary" id="hero-shop-btn">Shop the drop</button>
+          <a href="https://wa.me/27665411726" class="btn" target="_blank" rel="noopener">Message us direct</a>
+        </div>
+      </div>
+    </header>
+    <section class="section">
+      <div class="wrap">
+        <h2>Shop by category</h2>
+        <p class="section-sub">Winter range. Small batches — once a size is gone, it's gone until the next cut.</p>
+        <div class="tile-grid" id="home-tiles"><p class="empty-note">Loading…</p></div>
+      </div>
+    </section>
+    <section class="section">
+      <div class="wrap">
+        <h2>How to order</h2>
+        <div class="order-steps">
+          <div class="order-step"><span class="num">01</span><p><strong>Add your items</strong> to the bag, pick a size.</p></div>
+          <div class="order-step"><span class="num">02</span><p><strong>Tap complete order</strong> — opens WhatsApp filled in.</p></div>
+          <div class="order-step"><span class="num">03</span><p><strong>Pay securely</strong> — we reply on chat with a Yoco card-payment link, or EFT details if you prefer. We ship once your payment reflects.</p></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="page" id="page-category">
+    <div class="wrap">
+      <div class="page-head">
+        <div class="breadcrumb"><button id="back-to-home">Home</button> / <span id="category-title-crumb"></span></div>
+        <h2 id="category-title"></h2>
+      </div>
+      <div class="product-grid" id="category-grid"></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-row">
+      <span class="footer-note">© 2026 Ragnar Clothing. Self-made in Limpopo.</span>
+      <div class="footer-links">
+        <a href="https://www.tiktok.com" target="_blank" rel="noopener">TikTok</a>
+        <a href="https://wa.me/27665411726" target="_blank" rel="noopener">WhatsApp</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<div class="scrim" id="scrim"></div>
+<div class="cart-drawer" id="cart-drawer">
+  <div class="cart-head"><h3 style="font-size:18px;text-transform:uppercase;">Your bag</h3><button class="cart-close" id="cart-close">&times;</button></div>
+  <div class="cart-scroll">
+    <div class="cart-items" id="cart-items"><p class="cart-empty">Your bag is empty.</p></div>
+    <form class="delivery-form" id="delivery-form" autocomplete="on" novalidate>
+      <h4>Delivery details</h4>
+      <div class="method-row">
+        <label><input type="radio" name="method" value="Delivery" checked> Delivery</label>
+        <label><input type="radio" name="method" value="Collection"> I'll collect</label>
+      </div>
+      <input type="text" id="d-name" placeholder="Full name" autocomplete="name">
+      <input type="tel" id="d-phone" placeholder="Contact number" autocomplete="tel">
+      <div id="address-fields">
+        <input type="text" id="d-street" placeholder="Street address / house number" autocomplete="street-address">
+        <input type="text" id="d-suburb" placeholder="Suburb / village / township" autocomplete="address-level3">
+        <input type="text" id="d-city" placeholder="City / town" autocomplete="address-level2">
+        <div class="two-col">
+          <select id="d-province" autocomplete="address-level1">
+            <option value="">Province</option>
+            <option>Eastern Cape</option><option>Free State</option><option>Gauteng</option>
+            <option>KwaZulu-Natal</option><option>Limpopo</option><option>Mpumalanga</option>
+            <option>Northern Cape</option><option>North West</option><option>Western Cape</option>
+          </select>
+          <input type="text" id="d-postal" placeholder="Postal code" inputmode="numeric" maxlength="4" autocomplete="postal-code">
+        </div>
+        <input type="text" id="d-notes" placeholder="Delivery notes (landmark, gate colour…)">
+      </div>
+      <p class="privacy-note">Saved on this device only, so you don't retype it next time. It's sent to us in your WhatsApp order and used only to deliver it.</p>
+      <p class="form-error" id="delivery-error"></p>
+    </form>
+  </div>
+  <div class="cart-foot">
+    <div class="cart-total"><span>Total</span><span id="cart-total">R0</span></div>
+    <p class="pay-note"><strong>No payment is taken on this site.</strong> After you send your order we reply on WhatsApp with a secure Yoco card link (or EFT details). Only pay links sent from our WhatsApp number, and don't pay before we reply.</p>
+    <a href="#" id="checkout-btn" class="btn btn-primary" style="width:100%;justify-content:center;">Complete order via WhatsApp</a>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
