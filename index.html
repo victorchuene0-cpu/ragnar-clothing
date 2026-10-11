@@ -16,15 +16,25 @@
   <div class="topnav-row">
     <a class="nav-brand" id="nav-home-btn"><img src="logo.png" alt="Ragnar"><span>Ragnar</span></a>
     <div class="nav-links" id="nav-links">
-      <button class="nav-link" data-cat="">Home</button>
-      <button class="nav-link" data-cat="Hoodies">Hoodies</button>
-      <button class="nav-link" data-cat="Sweaters">Sweaters</button>
-      <button class="nav-link" data-cat="Tracksuits">Tracksuits</button>
-      <button class="nav-link" data-cat="Hats">Hats</button>
+      <button class="nav-link" data-page="home">Home</button>
+      <button class="nav-link" data-dept="Men" hidden>Men</button>
+      <button class="nav-link" data-dept="Women" hidden>Women</button>
+      <button class="nav-link" data-dept="Teens" hidden>Teens</button>
+      <button class="nav-link" data-dept="Kids" hidden>Kids</button>
+      <button class="nav-link" data-page="notices">Notices</button>
     </div>
     <button class="nav-cart" id="cart-toggle">Bag (<span id="cart-count">0</span>)</button>
   </div>
 </nav>
+
+<div class="notice-banner" id="notice-banner" hidden role="status">
+  <div class="notice-banner-inner">
+    <strong class="notice-banner-title" id="notice-banner-title"></strong>
+    <span class="notice-banner-text" id="notice-banner-text"></span>
+    <button type="button" class="notice-banner-more" id="notice-banner-more">Read more</button>
+  </div>
+  <button type="button" class="notice-banner-close" id="notice-banner-close" aria-label="Dismiss notice">&times;</button>
+</div>
 
 <main id="storefront">
   <div class="page active" id="page-home">
@@ -39,10 +49,10 @@
         </div>
       </div>
     </header>
-    <section class="section">
+    <section class="section" id="shop-section">
       <div class="wrap">
-        <h2>Shop by category</h2>
-        <p class="section-sub">Winter range. Small batches — once a size is gone, it's gone until the next cut.</p>
+        <h2>Shop for</h2>
+        <p class="section-sub">Pick who it's for, then browse by type. Winter range. Small batches — once a size is gone, it's gone until the next cut.</p>
         <div class="tile-grid" id="home-tiles"><p class="empty-note">Loading…</p></div>
       </div>
     </section>
@@ -61,10 +71,26 @@
   <div class="page" id="page-category">
     <div class="wrap">
       <div class="page-head">
-        <div class="breadcrumb"><button id="back-to-home">Home</button> / <span id="category-title-crumb"></span></div>
+        <div class="breadcrumb" id="breadcrumb"></div>
         <h2 id="category-title"></h2>
       </div>
-      <div class="product-grid" id="category-grid"></div>
+      <div class="tile-grid type-tiles" id="type-tiles"></div>
+      <div class="filter-row" id="size-filter" hidden></div>
+      <div class="product-grid" id="category-grid" hidden></div>
+    </div>
+  </div>
+
+  <div class="page" id="page-notices">
+    <div class="wrap">
+      <div class="page-head">
+        <div class="breadcrumb"><button id="notices-back">Home</button> / Notices</div>
+        <h2>Notices</h2>
+      </div>
+      <div class="community-box" id="community-box" hidden>
+        <p>Get announcements first in our WhatsApp community.</p>
+        <a class="btn btn-primary" id="community-btn" href="#" target="_blank" rel="noopener noreferrer">Join our WhatsApp community</a>
+      </div>
+      <div class="notice-list" id="notice-list"><p class="empty-note">Loading…</p></div>
     </div>
   </div>
 </main>
@@ -74,6 +100,7 @@
     <div class="footer-row">
       <span class="footer-note">© 2026 Ragnar Clothing. Self-made in Limpopo.</span>
       <div class="footer-links">
+        <a href="#" id="footer-community" target="_blank" rel="noopener noreferrer" hidden>Community</a>
         <a href="https://www.tiktok.com" target="_blank" rel="noopener">TikTok</a>
         <a href="https://wa.me/27665411726" target="_blank" rel="noopener">WhatsApp</a>
       </div>

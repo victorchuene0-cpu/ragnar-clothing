@@ -1,10 +1,31 @@
 const WHATSAPP_NUMBER = "27665411726";
+// Shoppers pick WHO it's for first (department), then the product type.
+const DEPARTMENTS = ["Men", "Women", "Teens", "Kids"];
+const DEFAULT_AUDIENCE = ["Men", "Women"];   // items saved before audiences existed are treated as adult unisex until the owner sets one
 const CATEGORIES = ["Hoodies", "Sweaters", "Tracksuits", "Hats"];
+const ALL = "__all__";                        // "Everything" inside a department
 let products = [];
+let catalogLoaded = false;
 let cart = [];
-let currentCategory = null;
+let currentDept = null;
+let currentType = null;
+let currentSize = null;
 
 function fmtR(n) { return "R" + Number(n).toLocaleString("en-ZA"); }
+
+function audiencesFor(p) {
+  const a = Array.isArray(p.audience) ? p.audience.filter(x => DEPARTMENTS.includes(x)) : [];
+  return a.length ? a : DEFAULT_AUDIENCE;
+}
+function inDept(dept) { return products.filter(p => audiencesFor(p).includes(dept)); }
+
+// Product photos are stored inside the product as a small JPEG data URL. Only accept that exact shape.
+const IMAGE_RE = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/]+=*$/;
+function safeImage(v) { return typeof v === "string" && IMAGE_RE.test(v) ? v : ""; }
+function firstImage(list) {
+  for (const p of list) { const i = safeImage(p.image); if (i) return i; }
+  return "";
+}
 
 function showPage(name) {
   document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
@@ -12,34 +33,35 @@ function showPage(name) {
   document.querySelectorAll(".nav-link").forEach(b => b.classList.remove("active"));
   window.scrollTo(0, 0);
 }
+function markNav(test) {
+  document.querySelectorAll(".nav-link").forEach(b => { if (test(b.dataset)) b.classList.add("active"); });
+}
 function goHome() {
-  currentCategory = null;
+  currentDept = null; currentType = null; currentSize = null;
   showPage("home");
-  document.querySelector('.nav-link[data-cat=""]').classList.add("active");
+  markNav(d => d.page === "home");
   renderHomeTiles();
 }
-function goCategory(cat) {
-  currentCategory = cat;
+function goDept(dept, type) {
+  currentDept = dept; currentType = type || null; currentSize = null;
   showPage("category");
-  const b = document.querySelector(`.nav-link[data-cat="${cat}"]`);
-  if (b) b.classList.add("active");
-  document.getElementById("category-title").textContent = cat;
-  document.getElementById("category-title-crumb").textContent = cat;
-  renderCategoryGrid();
+  markNav(d => d.dept === dept);
+  renderCategoryPage();
 }
 function goNotices() {
-  currentCategory = null;
+  currentDept = null; currentType = null; currentSize = null;
   showPage("notices");
-  document.querySelector('.nav-link[data-page="notices"]').classList.add("active");
+  markNav(d => d.page === "notices");
 }
 document.getElementById("nav-home-btn").addEventListener("click", goHome);
-document.getElementById("back-to-home").addEventListener("click", goHome);
 document.getElementById("notices-back").addEventListener("click", goHome);
-document.getElementById("hero-shop-btn").addEventListener("click", () => goCategory(CATEGORIES[0]));
+document.getElementById("hero-shop-btn").addEventListener("click", () => {
+  document.getElementById("shop-section").scrollIntoView({ behavior: "smooth" });
+});
 document.querySelectorAll(".nav-link").forEach(btn => {
   btn.addEventListener("click", () => {
     if (btn.dataset.page === "notices") goNotices();
-    else if (btn.dataset.cat) goCategory(btn.dataset.cat);
+    else if (btn.dataset.dept) goDept(btn.dataset.dept);
     else goHome();
   });
 });
@@ -163,6 +185,16 @@ function buildProductCard(p) {
     <div class="size-row"></div>
     <p class="size-error"></p>
     <button type="button" class="add-btn">Add to bag</button>`;
+  const photoSrc = safeImage(p.image);
+  if (photoSrc) {
+    const photo = document.createElement("img");
+    photo.className = "product-photo";
+    photo.src = photoSrc;
+    photo.alt = p.name || "";
+    photo.loading = "lazy";
+    photo.decoding = "async";
+    card.replaceChild(photo, card.querySelector(".product-swatch"));
+  }
   card.querySelector(".product-name").textContent = p.name;
   card.querySelector(".product-price").textContent = fmtR(p.price) + (p.note ? " · " + p.note : "");
 
@@ -197,26 +229,119 @@ function buildProductCard(p) {
   }
   return card;
 }
+function makeTile(name, count, onClick, image) {
+  const tile = document.createElement("button");
+  tile.type = "button";
+  tile.className = "tile";
+  tile.innerHTML = `<div class="tile-swatch"></div><div class="tile-label"><div class="tile-name"></div><div class="tile-count"></div></div>`;
+  if (image) {
+    const sw = tile.querySelector(".tile-swatch");
+    sw.style.backgroundImage = 'url("' + image + '")';
+    sw.style.backgroundSize = "cover";
+    sw.style.backgroundPosition = "center";
+  }
+  tile.querySelector(".tile-name").textContent = name;
+  tile.querySelector(".tile-count").textContent = count === 1 ? "1 item" : count + " items";
+  tile.addEventListener("click", onClick);
+  return tile;
+}
+
+// Home: one tile per department that actually has stock. Empty departments stay hidden.
 function renderHomeTiles() {
+  if (!catalogLoaded) return;
   const root = document.getElementById("home-tiles");
   root.innerHTML = "";
-  CATEGORIES.forEach(cat => {
-    const count = products.filter(p => p.category === cat).length;
-    const tile = document.createElement("button");
-    tile.className = "tile";
-    tile.innerHTML = `<div class="tile-swatch"></div><div class="tile-label"><div class="tile-name"></div><div class="tile-count"></div></div>`;
-    tile.querySelector(".tile-name").textContent = cat;
-    tile.querySelector(".tile-count").textContent = count === 1 ? "1 item" : count + " items";
-    tile.addEventListener("click", () => goCategory(cat));
-    root.appendChild(tile);
-  });
+  const depts = DEPARTMENTS.filter(d => inDept(d).length > 0);
+  document.querySelectorAll(".nav-link[data-dept]").forEach(b => { b.hidden = !depts.includes(b.dataset.dept); });
+  if (depts.length === 0) { root.innerHTML = '<p class="empty-note">Nothing here yet — check back soon.</p>'; return; }
+  depts.forEach(d => { const list = inDept(d); root.appendChild(makeTile(d, list.length, () => goDept(d), firstImage(list))); });
 }
-function renderCategoryGrid() {
+
+// Department page = type tiles (Hoodies, Sweaters…). Type page = product grid with size/age filter.
+function renderCategoryPage() {
+  if (!currentDept) return;
+  const items = inDept(currentDept);
+  const crumb = document.getElementById("breadcrumb");
+  crumb.innerHTML = "";
+  const crumbBtn = (label, fn) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = label; b.addEventListener("click", fn);
+    crumb.appendChild(b);
+  };
+  const sep = () => crumb.appendChild(document.createTextNode(" / "));
+  crumbBtn("Home", goHome); sep();
+
+  const tiles = document.getElementById("type-tiles");
   const grid = document.getElementById("category-grid");
+  const bar = document.getElementById("size-filter");
+
+  if (!currentType) {
+    crumb.appendChild(document.createTextNode(currentDept));
+    document.getElementById("category-title").textContent = currentDept;
+    grid.hidden = true; bar.hidden = true; tiles.hidden = false;
+    renderTypeTiles(items);
+  } else {
+    crumbBtn(currentDept, () => goDept(currentDept)); sep();
+    const typeLabel = currentType === ALL ? "Everything" : currentType;
+    crumb.appendChild(document.createTextNode(typeLabel));
+    document.getElementById("category-title").textContent = currentDept + " · " + typeLabel;
+    tiles.hidden = true; grid.hidden = false;
+    renderProductList(items);
+  }
+}
+
+function renderTypeTiles(items) {
+  const root = document.getElementById("type-tiles");
+  root.innerHTML = "";
+  if (items.length === 0) { root.innerHTML = '<p class="empty-note">Nothing here yet — check back soon.</p>'; return; }
+  const entries = [{ key: ALL, label: "Everything", count: items.length, image: firstImage(items) }];
+  CATEGORIES.forEach(c => {
+    const list = items.filter(p => p.category === c);
+    if (list.length > 0) entries.push({ key: c, label: c, count: list.length, image: firstImage(list) });
+  });
+  entries.forEach(e => root.appendChild(makeTile(e.label, e.count, () => goDept(currentDept, e.key), e.image)));
+}
+
+const SIZE_ORDER = ["One size", "XS", "S", "M", "L", "XL", "XXL", "3XL"];
+function sizeRank(s) {
+  const i = SIZE_ORDER.indexOf(s);
+  if (i !== -1) return i;
+  const m = /^\s*(\d+)/.exec(s);           // age sizes like "5-6 yrs" sort by their first number
+  return m ? 100 + Number(m[1]) : 1000;
+}
+function sizeSort(a, b) { return sizeRank(a) - sizeRank(b) || a.localeCompare(b); }
+
+function renderProductList(items) {
+  const grid = document.getElementById("category-grid");
+  const bar = document.getElementById("size-filter");
+  const list = currentType === ALL ? items : items.filter(p => p.category === currentType);
+
+  // Size / age filter: built from what is actually on this page, so it works for adult sizes and kids' ages alike.
+  const sizes = Array.from(new Set(list.reduce((acc, p) => acc.concat(sizesFor(p)), []))).sort(sizeSort);
+  if (currentSize && !sizes.includes(currentSize)) currentSize = null;
+  bar.innerHTML = "";
+  if (sizes.length >= 2) {
+    const label = document.createElement("span");
+    label.className = "filter-label"; label.textContent = "Size / age";
+    bar.appendChild(label);
+    [null].concat(sizes).forEach(s => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "filter-chip" + (s === currentSize ? " active" : "");
+      chip.textContent = s === null ? "All" : s;
+      chip.setAttribute("aria-pressed", s === currentSize ? "true" : "false");
+      chip.addEventListener("click", () => { currentSize = s; renderProductList(inDept(currentDept)); });
+      bar.appendChild(chip);
+    });
+    bar.hidden = false;
+  } else {
+    bar.hidden = true;
+  }
+
+  const shown = currentSize ? list.filter(p => sizesFor(p).includes(currentSize)) : list;
   grid.innerHTML = "";
-  const items = products.filter(p => p.category === currentCategory);
-  if (items.length === 0) { grid.innerHTML = '<p class="empty-note">Nothing here yet — check back soon.</p>'; return; }
-  items.forEach(p => grid.appendChild(buildProductCard(p)));
+  if (shown.length === 0) { grid.innerHTML = '<p class="empty-note">Nothing here yet — check back soon.</p>'; return; }
+  shown.forEach(p => grid.appendChild(buildProductCard(p)));
 }
 
 // ---------- Notices & community link (posted from admin.html) ----------
@@ -304,8 +429,9 @@ db.doc("settings/site").onSnapshot(
 db.collection("products").orderBy("createdAt", "asc").onSnapshot(
   (snap) => {
     products = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    catalogLoaded = true;
     renderHomeTiles();
-    if (currentCategory) renderCategoryGrid();
+    if (currentDept) renderCategoryPage();
   },
   () => { document.getElementById("home-tiles").innerHTML = '<p class="empty-note">Catalog is temporarily unavailable.</p>'; }
 );

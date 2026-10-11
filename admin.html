@@ -23,10 +23,16 @@
 
 <div class="admin-shell" id="panel-view" style="display:none;max-width:700px;">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-    <h2>Manage catalog</h2>
+    <h2>Manage store</h2>
     <button class="btn" id="logout-btn">Sign out</button>
   </div>
 
+  <div class="admin-tabs">
+    <button type="button" class="admin-tab active" data-tab="products">Products</button>
+    <button type="button" class="admin-tab" data-tab="notices">Notices</button>
+  </div>
+
+<div id="tab-products">
   <form class="admin-form" id="product-form">
     <h3 id="form-title">Add a new item</h3>
     <div class="admin-row">
@@ -41,6 +47,25 @@
       <input type="text" id="p-note" placeholder="Note (optional, e.g. winter drop)">
     </div>
 
+    <div class="admin-label">Product photo</div>
+    <div class="photo-box">
+      <img id="p-photo-preview" class="photo-preview" alt="Photo preview" hidden>
+      <div class="photo-actions">
+        <label class="btn photo-pick">Choose photo<input type="file" id="p-photo" accept="image/*" hidden></label>
+        <button type="button" class="del-btn" id="p-photo-remove" hidden>Remove photo</button>
+      </div>
+    </div>
+    <p class="admin-hint">Take one now or pick from your gallery. It's shrunk automatically so the store stays quick on data. Press Save afterwards to publish it.</p>
+
+    <div class="admin-label">Who is it for?</div>
+    <div class="size-checks" id="audience-checks">
+      <label><input type="checkbox" value="Men"> Men</label>
+      <label><input type="checkbox" value="Women"> Women</label>
+      <label><input type="checkbox" value="Teens"> Teens (13-17)</label>
+      <label><input type="checkbox" value="Kids"> Kids (under 13)</label>
+    </div>
+    <p class="admin-hint">Tick every group it suits. Unisex = tick Men and Women. Shoppers pick this first, then the type.</p>
+
     <div class="admin-label">Sizes available</div>
     <div class="size-checks" id="size-checks">
       <label><input type="checkbox" value="XS"> XS</label>
@@ -50,8 +75,16 @@
       <label><input type="checkbox" value="XL" checked> XL</label>
       <label><input type="checkbox" value="XXL"> XXL</label>
       <label><input type="checkbox" value="One size" id="size-one"> One size</label>
+      <span class="size-group-label">Kids &amp; teen age sizes</span>
+      <label><input type="checkbox" value="3-4 yrs"> 3-4 yrs</label>
+      <label><input type="checkbox" value="5-6 yrs"> 5-6 yrs</label>
+      <label><input type="checkbox" value="7-8 yrs"> 7-8 yrs</label>
+      <label><input type="checkbox" value="9-10 yrs"> 9-10 yrs</label>
+      <label><input type="checkbox" value="11-12 yrs"> 11-12 yrs</label>
+      <label><input type="checkbox" value="13-14 yrs"> 13-14 yrs</label>
+      <label><input type="checkbox" value="15-16 yrs"> 15-16 yrs</label>
     </div>
-    <input type="text" id="p-other-sizes" placeholder="Other sizes, separated by commas (e.g. 3XL, Kids 8)">
+    <input type="text" id="p-other-sizes" placeholder="Other sizes, separated by commas (e.g. 3XL, 2-3 yrs)">
 
     <label class="check-line"><input type="checkbox" id="p-soldout"> Mark as sold out</label>
 
@@ -68,6 +101,41 @@
   </table>
 </div>
 
+<div id="tab-notices" hidden>
+  <form class="admin-form" id="notice-form">
+    <h3>Post a notice</h3>
+    <p class="admin-hint">Shows on the store's Notices page. "Important" notices also appear as a banner across the top until a visitor dismisses it.</p>
+    <input type="text" id="n-title" placeholder="Title (e.g. Next drop delayed)" maxlength="80" required>
+    <textarea id="n-message" placeholder="Message — say what's happening and when customers can expect an update" maxlength="1000" required></textarea>
+    <div class="admin-row">
+      <select id="n-level">
+        <option value="important">Important (banner + page)</option>
+        <option value="info">Update (page only)</option>
+      </select>
+      <input type="date" id="n-expires" aria-label="Hide after this date (optional)">
+    </div>
+    <p class="admin-hint">The date is optional: the notice hides itself after it, so old news doesn't stay up.</p>
+    <button type="submit" class="btn btn-primary" id="n-post">Post notice</button>
+    <p class="status-note" id="notice-status"></p>
+  </form>
+
+  <table class="admin-table" id="notice-table">
+    <thead><tr><th>Notice</th><th>Status</th><th></th></tr></thead>
+    <tbody id="notice-table-body"></tbody>
+  </table>
+
+  <hr class="admin-divider">
+
+  <form class="admin-form" id="community-form">
+    <h3>WhatsApp community link</h3>
+    <p class="admin-hint">In WhatsApp: open your community, tap its name, then choose the invite link option and copy it. Paste it here and a "Join our WhatsApp community" button appears on the Notices page and in the footer. Leave it empty to remove the button.</p>
+    <input type="url" id="c-link" placeholder="https://chat.whatsapp.com/...">
+    <button type="submit" class="btn btn-primary">Save link</button>
+    <p class="status-note" id="community-status"></p>
+  </form>
+</div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -82,6 +150,74 @@ function fmtR(n){return "R"+Number(n).toLocaleString("en-ZA");}
 function setStatus(id,msg){const el=document.getElementById(id);el.textContent=msg;setTimeout(()=>{el.textContent="";},4000);}
 const $ = (id) => document.getElementById(id);
 const sizeBoxes = () => Array.from(document.querySelectorAll("#size-checks input[type=checkbox]"));
+// ---------- Product photo (shrunk in the browser, stored inside the product) ----------
+const IMAGE_RE = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/]+=*$/;
+function safeImage(v) { return typeof v === "string" && IMAGE_RE.test(v) ? v : ""; }
+const IMG_STEPS = [[800, 0.78], [700, 0.7], [600, 0.65], [500, 0.6], [400, 0.55]];
+const IMG_GOOD_CHARS = 160000;   // aim for roughly 120 KB
+const IMG_MAX_CHARS = 600000;    // hard stop, well under Firestore's 1 MiB per-document limit
+let photoData;                   // undefined = leave as is, "" = remove, string = new photo
+let savedPhoto = "";             // photo already saved on the product being edited
+let photoBusy = false;
+
+function loadImage(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("unreadable")); };
+    img.src = url;
+  });
+}
+async function compressPhoto(file) {
+  if (!file || !/^image\//.test(file.type)) throw new Error("not-image");
+  const img = await loadImage(file);
+  const longest = Math.max(img.naturalWidth, img.naturalHeight);
+  if (!longest) throw new Error("unreadable");
+  let last = "";
+  for (const [maxDim, quality] of IMG_STEPS) {
+    const scale = Math.min(1, maxDim / longest);
+    const c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round(img.naturalWidth * scale));
+    c.height = Math.max(1, Math.round(img.naturalHeight * scale));
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = "#ffffff";                 // transparent PNGs would turn black as JPEG
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(img, 0, 0, c.width, c.height);
+    last = c.toDataURL("image/jpeg", quality);
+    if (last.length <= IMG_GOOD_CHARS) return last;
+  }
+  if (last.length <= IMG_MAX_CHARS) return last;
+  throw new Error("too-big");
+}
+function showPhoto(src) {
+  const ok = safeImage(src);
+  $("p-photo-preview").hidden = !ok;
+  if (ok) $("p-photo-preview").src = ok; else $("p-photo-preview").removeAttribute("src");
+  $("p-photo-remove").hidden = !ok;
+}
+$("p-photo").addEventListener("change", async () => {
+  const f = $("p-photo").files && $("p-photo").files[0];
+  if (!f) return;
+  photoBusy = true;
+  setStatus("admin-status", "Preparing photo…");
+  try {
+    photoData = await compressPhoto(f);
+    showPhoto(photoData);
+    setStatus("admin-status", "Photo ready. Press Save to publish it.");
+  } catch (err) {
+    showPhoto(photoData !== undefined ? photoData : savedPhoto);
+    setStatus("admin-status", "Couldn't use that photo. Try a JPG or PNG.");
+  } finally {
+    photoBusy = false;
+    try { $("p-photo").value = ""; } catch (e) { /* ignore */ }
+  }
+});
+$("p-photo-remove").addEventListener("click", () => { photoData = ""; showPhoto(""); });
+
+const audienceBoxes = () => Array.from(document.querySelectorAll("#audience-checks input[type=checkbox]"));
+const collectAudience = () => audienceBoxes().filter(b => b.checked).map(b => b.value);
+const setAudience = (list) => audienceBoxes().forEach(b => { b.checked = list.includes(b.value); });
 
 // ---------- Sign in ----------
 $("login-form").addEventListener("submit", async (e) => {
@@ -96,7 +232,16 @@ let listening = false;
 auth.onAuthStateChanged(user => {
   $("login-view").style.display = user ? "none" : "block";
   $("panel-view").style.display = user ? "block" : "none";
-  if (user && !listening) { listening = true; listenProducts(); }
+  if (user && !listening) { listening = true; listenProducts(); listenNotices(); loadCommunity(); }
+});
+
+// ---------- Tabs ----------
+document.querySelectorAll(".admin-tab").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".admin-tab").forEach(b => b.classList.toggle("active", b === btn));
+    $("tab-products").hidden = btn.dataset.tab !== "products";
+    $("tab-notices").hidden = btn.dataset.tab !== "notices";
+  });
 });
 
 // ---------- Size checkboxes: "One size" can't be mixed with specific sizes ----------
@@ -129,6 +274,7 @@ function resetForm() {
   editingId = null;
   $("product-form").reset();
   setSizes(DEFAULT_SIZES);
+  photoData = undefined; savedPhoto = ""; showPhoto("");
   $("form-title").textContent = "Add a new item";
   $("save-btn").textContent = "Add item";
   $("cancel-btn").style.display = "none";
@@ -142,6 +288,8 @@ function startEdit(p) {
   $("p-price").value = p.price != null ? p.price : "";
   $("p-note").value = p.note || "";
   $("p-soldout").checked = !!p.soldOut;
+  setAudience(Array.isArray(p.audience) ? p.audience : []);
+  savedPhoto = safeImage(p.image); photoData = undefined; showPhoto(savedPhoto);
   setSizes(Array.isArray(p.sizes) && p.sizes.length ? p.sizes : DEFAULT_SIZES);
   $("form-title").textContent = "Editing: " + p.name;
   $("save-btn").textContent = "Save changes";
@@ -157,9 +305,13 @@ $("product-form").addEventListener("submit", async (e) => {
   const note = $("p-note").value.trim();
   const sizes = collectSizes();
   const soldOut = $("p-soldout").checked;
+  const audience = collectAudience();
+  if (photoBusy) { setStatus("admin-status", "Photo is still being prepared. Try again in a second."); return; }
   if (!name || !category || !price) { setStatus("admin-status", "Name, category and price are required."); return; }
+  if (audience.length === 0) { setStatus("admin-status", "Pick who it's for: Men, Women, Teens or Kids."); return; }
   if (sizes.length === 0) { setStatus("admin-status", "Pick at least one size (or tick One size)."); return; }
-  const data = { name, category, price, note, sizes, soldOut };
+  const data = { name, category, audience, price, note, sizes, soldOut };
+  if (photoData !== undefined) data.image = photoData;   // untouched photo is left exactly as saved
   try {
     if (editingId) {
       await db.collection("products").doc(editingId).update(data);
@@ -191,7 +343,14 @@ function listenProducts() {
         tag.className = "tag"; tag.textContent = "Sold out";
         nameEl.appendChild(tag);
       }
-      tr.querySelector(".c").textContent = p.category;
+      const aud = Array.isArray(p.audience) && p.audience.length ? p.audience : null;
+      const thumbSrc = safeImage(p.image);
+      if (thumbSrc) {
+        const th = document.createElement("img");
+        th.className = "thumb"; th.alt = ""; th.src = thumbSrc;
+        tr.children[0].insertBefore(th, tr.children[0].firstChild);
+      }
+      tr.querySelector(".c").textContent = p.category + " · " + (aud ? aud.join(", ") : "no audience set (shown as Men + Women)");
       tr.children[1].textContent = fmtR(p.price);
       tr.children[2].textContent = sizes.join(", ");
 
@@ -213,6 +372,124 @@ function listenProducts() {
     });
   }, () => setStatus("admin-status", "Couldn't load products — check your Firestore rules."));
 }
+
+// ---------- Notices ----------
+function fmtDate(ms) {
+  return new Date(ms).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" });
+}
+function noticeState(n) {
+  if (n.active === false) return "Hidden";
+  if (n.expiresAt && n.expiresAt < Date.now()) return "Expired";
+  return "Live";
+}
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; }
+  catch (e) {
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (_) { ok = false; }
+    ta.remove();
+    return ok;
+  }
+}
+function actionBtn(label, onClick) {
+  const b = document.createElement("button");
+  b.className = "del-btn"; b.textContent = label;
+  b.addEventListener("click", onClick);
+  return b;
+}
+
+$("notice-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const title = $("n-title").value.trim();
+  const message = $("n-message").value.trim();
+  const level = $("n-level").value;
+  const dateStr = $("n-expires").value;
+  if (!title || !message) { setStatus("notice-status", "Add a title and a message."); return; }
+  const data = { title, message, level, active: true, createdAt: Date.now() };
+  if (dateStr) {
+    const t = new Date(dateStr + "T23:59:59").getTime();
+    if (isNaN(t) || t < Date.now()) { setStatus("notice-status", "Pick a date in the future, or leave it empty."); return; }
+    data.expiresAt = t;
+  }
+  try {
+    await db.collection("notices").add(data);
+    e.target.reset();
+    setStatus("notice-status", "Posted. It's live on the store now.");
+  } catch (err) {
+    setStatus("notice-status", "Couldn't post — check you're signed in as the admin and the new Firestore rules are published.");
+  }
+});
+
+function listenNotices() {
+  db.collection("notices").orderBy("createdAt", "desc").limit(50).onSnapshot(snap => {
+    const body = $("notice-table-body");
+    body.innerHTML = "";
+    if (snap.docs.length === 0) {
+      body.innerHTML = '<tr><td colspan="3">No notices yet.</td></tr>';
+      return;
+    }
+    snap.docs.forEach(d => {
+      const n = { id: d.id, ...d.data() };
+      const state = noticeState(n);
+      const tr = document.createElement("tr");
+      tr.innerHTML = '<td><span class="n"></span><span class="cell-sub s"></span></td><td></td><td><div class="row-actions"></div></td>';
+      tr.querySelector(".n").textContent = n.title;
+      tr.querySelector(".s").textContent =
+        (n.level === "important" ? "Important" : "Update") + " · " + fmtDate(n.createdAt) +
+        (n.expiresAt ? " · until " + fmtDate(n.expiresAt) : "");
+      tr.children[1].textContent = state;
+      const actions = tr.querySelector(".row-actions");
+      if (state !== "Expired") {
+        actions.appendChild(actionBtn(state === "Hidden" ? "Show" : "Hide", async () => {
+          try { await db.collection("notices").doc(n.id).update({ active: state === "Hidden" }); }
+          catch (err) { setStatus("notice-status", "Couldn't update — try again."); }
+        }));
+      }
+      actions.appendChild(actionBtn("Copy for WhatsApp", async () => {
+        const ok = await copyText("*" + n.title + "*\n" + n.message + "\n\n— Ragnar Clothing");
+        setStatus("notice-status", ok ? "Copied. Paste it into your WhatsApp community." : "Couldn't copy — select the text and copy it manually.");
+      }));
+      actions.appendChild(actionBtn("Delete", async () => {
+        if (!confirm("Delete this notice?")) return;
+        try { await db.collection("notices").doc(n.id).delete(); }
+        catch (err) { setStatus("notice-status", "Couldn't delete — try again."); }
+      }));
+      body.appendChild(tr);
+    });
+  }, () => setStatus("notice-status", "Couldn't load notices — publish the new Firestore rules first."));
+}
+
+// ---------- WhatsApp community link ----------
+function safeWhatsAppLink(url) {
+  try {
+    const u = new URL(url);
+    const hostOk = ["chat.whatsapp.com", "whatsapp.com", "www.whatsapp.com"].includes(u.hostname);
+    return u.protocol === "https:" && hostOk ? u.href : "";
+  } catch (e) { return ""; }
+}
+function loadCommunity() {
+  db.doc("settings/site").get().then(snap => {
+    if (snap.exists) $("c-link").value = (snap.data() || {}).communityLink || "";
+  }).catch(() => { /* rules not published yet — the form still works once they are */ });
+}
+$("community-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const raw = $("c-link").value.trim();
+  let link = "";
+  if (raw) {
+    link = safeWhatsAppLink(raw);
+    if (!link) { setStatus("community-status", "That doesn't look like a WhatsApp link. It should start with https://chat.whatsapp.com/"); return; }
+  }
+  try {
+    await db.doc("settings/site").set({ communityLink: link }, { merge: true });
+    setStatus("community-status", link ? "Saved. The join button is live." : "Link removed.");
+  } catch (err) {
+    setStatus("community-status", "Couldn't save — check you're signed in as the admin and the new Firestore rules are published.");
+  }
+});
 </script>
 </body>
 </html>
