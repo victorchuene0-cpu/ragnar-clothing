@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ragnar — Owner Panel</title>
+<link rel="icon" href="logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="admin-head wrap"><h2 style="font-size:18px;text-transform:uppercase;">Ragnar — Owner Panel</h2><a href="index.html" class="btn">View store</a></div>
+
+<div class="admin-shell" id="login-view">
+  <h2 style="margin-bottom:14px;">Sign in</h2>
+  <form class="admin-form" id="login-form">
+    <input type="email" id="login-email" placeholder="Email" required>
+    <input type="password" id="login-password" placeholder="Password" required>
+    <button type="submit" class="btn btn-primary" style="justify-content:center;">Sign in</button>
+  </form>
+  <p class="status-note" id="login-status"></p>
+</div>
+
+<div class="admin-shell" id="panel-view" style="display:none;max-width:700px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <h2>Manage store</h2>
+    <button class="btn" id="logout-btn">Sign out</button>
+  </div>
+
+  <div class="admin-tabs">
+    <button type="button" class="admin-tab active" data-tab="products">Products</button>
+    <button type="button" class="admin-tab" data-tab="notices">Notices</button>
+  </div>
+
+<div id="tab-products">
+  <form class="admin-form" id="product-form">
+    <h3 id="form-title">Add a new item</h3>
+    <div class="admin-row">
+      <input type="text" id="p-name" placeholder="Item name" required>
+      <select id="p-category" required>
+        <option value="">Category</option>
+        <option>Hoodies</option><option>Sweaters</option><option>Tracksuits</option><option>Hats</option>
+      </select>
+    </div>
+    <div class="admin-row">
+      <input type="number" id="p-price" placeholder="Price (R)" min="0" required>
+      <input type="text" id="p-note" placeholder="Note (optional, e.g. winter drop)">
+    </div>
+
+    <div class="admin-label">Sizes available</div>
+    <div class="size-checks" id="size-checks">
+      <label><input type="checkbox" value="XS"> XS</label>
+      <label><input type="checkbox" value="S" checked> S</label>
+      <label><input type="checkbox" value="M" checked> M</label>
+      <label><input type="checkbox" value="L" checked> L</label>
+      <label><input type="checkbox" value="XL" checked> XL</label>
+      <label><input type="checkbox" value="XXL"> XXL</label>
+      <label><input type="checkbox" value="One size" id="size-one"> One size</label>
+    </div>
+    <input type="text" id="p-other-sizes" placeholder="Other sizes, separated by commas (e.g. 3XL, Kids 8)">
+
+    <label class="check-line"><input type="checkbox" id="p-soldout"> Mark as sold out</label>
+
+    <div class="admin-btn-row">
+      <button type="submit" class="btn btn-primary" id="save-btn">Add item</button>
+      <button type="button" class="btn" id="cancel-btn" style="display:none;">Cancel</button>
+    </div>
+    <p class="status-note" id="admin-status"></p>
+  </form>
+
+  <table class="admin-table" id="admin-table">
+    <thead><tr><th>Item</th><th>Price</th><th>Sizes</th><th></th></tr></thead>
+    <tbody id="admin-table-body"></tbody>
+  </table>
+</div>
+
+<div id="tab-notices" hidden>
+  <form class="admin-form" id="notice-form">
+    <h3>Post a notice</h3>
+    <p class="admin-hint">Shows on the store's Notices page. "Important" notices also appear as a banner across the top until a visitor dismisses it.</p>
+    <input type="text" id="n-title" placeholder="Title (e.g. Next drop delayed)" maxlength="80" required>
+    <textarea id="n-message" placeholder="Message — say what's happening and when customers can expect an update" maxlength="1000" required></textarea>
+    <div class="admin-row">
+      <select id="n-level">
+        <option value="important">Important (banner + page)</option>
+        <option value="info">Update (page only)</option>
+      </select>
+      <input type="date" id="n-expires" aria-label="Hide after this date (optional)">
+    </div>
+    <p class="admin-hint">The date is optional: the notice hides itself after it, so old news doesn't stay up.</p>
+    <button type="submit" class="btn btn-primary" id="n-post">Post notice</button>
+    <p class="status-note" id="notice-status"></p>
+  </form>
+
+  <table class="admin-table" id="notice-table">
+    <thead><tr><th>Notice</th><th>Status</th><th></th></tr></thead>
+    <tbody id="notice-table-body"></tbody>
+  </table>
+
+  <hr class="admin-divider">
+
+  <form class="admin-form" id="community-form">
+    <h3>WhatsApp community link</h3>
+    <p class="admin-hint">In WhatsApp: open your community, tap its name, then choose the invite link option and copy it. Paste it here and a "Join our WhatsApp community" button appears on the Notices page and in the footer. Leave it empty to remove the button.</p>
+    <input type="url" id="c-link" placeholder="https://chat.whatsapp.com/...">
+    <button type="submit" class="btn btn-primary">Save link</button>
+    <p class="status-note" id="community-status"></p>
+  </form>
+</div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+const auth = firebase.auth();
+const DEFAULT_SIZES = ["S", "M", "L", "XL"];
+let editingId = null;
+let productsById = {};
+
+function fmtR(n){return "R"+Number(n).toLocaleString("en-ZA");}
+function setStatus(id,msg){const el=document.getElementById(id);el.textContent=msg;setTimeout(()=>{el.textContent="";},4000);}
+const $ = (id) => document.getElementById(id);
+const sizeBoxes = () => Array.from(document.querySelectorAll("#size-checks input[type=checkbox]"));
+
+// ---------- Sign in ----------
+$("login-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    await auth.signInWithEmailAndPassword($("login-email").value, $("login-password").value);
+  } catch (err) { setStatus("login-status", "Sign-in failed — check email/password."); }
+});
+$("logout-btn").addEventListener("click", () => auth.signOut());
+
+let listening = false;
+auth.onAuthStateChanged(user => {
+  $("login-view").style.display = user ? "none" : "block";
+  $("panel-view").style.display = user ? "block" : "none";
+  if (user && !listening) { listening = true; listenProducts(); listenNotices(); loadCommunity(); }
+});
+
+// ---------- Tabs ----------
+document.querySelectorAll(".admin-tab").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".admin-tab").forEach(b => b.classList.toggle("active", b === btn));
+    $("tab-products").hidden = btn.dataset.tab !== "products";
+    $("tab-notices").hidden = btn.dataset.tab !== "notices";
+  });
+});
+
+// ---------- Size checkboxes: "One size" can't be mixed with specific sizes ----------
+$("size-checks").addEventListener("change", (e) => {
+  const t = e.target;
+  if (t.id === "size-one" && t.checked) {
+    sizeBoxes().forEach(b => { if (b !== t) b.checked = false; });
+    $("p-other-sizes").value = "";
+  } else if (t.checked) {
+    $("size-one").checked = false;
+  }
+});
+$("p-other-sizes").addEventListener("input", () => {
+  if ($("p-other-sizes").value.trim()) $("size-one").checked = false;
+});
+
+function collectSizes() {
+  const picked = sizeBoxes().filter(b => b.checked).map(b => b.value);
+  const extra = $("p-other-sizes").value.split(",").map(s => s.trim()).filter(Boolean);
+  return Array.from(new Set(picked.concat(extra)));
+}
+function setSizes(sizes) {
+  const known = sizeBoxes().map(b => b.value);
+  sizeBoxes().forEach(b => { b.checked = sizes.includes(b.value); });
+  $("p-other-sizes").value = sizes.filter(s => !known.includes(s)).join(", ");
+}
+
+// ---------- Add / edit ----------
+function resetForm() {
+  editingId = null;
+  $("product-form").reset();
+  setSizes(DEFAULT_SIZES);
+  $("form-title").textContent = "Add a new item";
+  $("save-btn").textContent = "Add item";
+  $("cancel-btn").style.display = "none";
+}
+$("cancel-btn").addEventListener("click", resetForm);
+
+function startEdit(p) {
+  editingId = p.id;
+  $("p-name").value = p.name || "";
+  $("p-category").value = p.category || "";
+  $("p-price").value = p.price != null ? p.price : "";
+  $("p-note").value = p.note || "";
+  $("p-soldout").checked = !!p.soldOut;
+  setSizes(Array.isArray(p.sizes) && p.sizes.length ? p.sizes : DEFAULT_SIZES);
+  $("form-title").textContent = "Editing: " + p.name;
+  $("save-btn").textContent = "Save changes";
+  $("cancel-btn").style.display = "";
+  $("product-form").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+$("product-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const name = $("p-name").value.trim();
+  const category = $("p-category").value;
+  const price = Number($("p-price").value);
+  const note = $("p-note").value.trim();
+  const sizes = collectSizes();
+  const soldOut = $("p-soldout").checked;
+  if (!name || !category || !price) { setStatus("admin-status", "Name, category and price are required."); return; }
+  if (sizes.length === 0) { setStatus("admin-status", "Pick at least one size (or tick One size)."); return; }
+  const data = { name, category, price, note, sizes, soldOut };
+  try {
+    if (editingId) {
+      await db.collection("products").doc(editingId).update(data);
+      setStatus("admin-status", "Changes saved.");
+    } else {
+      await db.collection("products").add({ ...data, createdAt: Date.now() });
+      setStatus("admin-status", "Added.");
+    }
+    resetForm();
+  } catch (err) { setStatus("admin-status", "Couldn't save — are you signed in as the admin account?"); }
+});
+
+// ---------- List ----------
+function listenProducts() {
+  db.collection("products").orderBy("createdAt", "asc").onSnapshot(snap => {
+    const body = $("admin-table-body");
+    body.innerHTML = "";
+    productsById = {};
+    snap.docs.forEach(d => {
+      const p = { id: d.id, ...d.data() };
+      productsById[p.id] = p;
+      const sizes = Array.isArray(p.sizes) && p.sizes.length ? p.sizes : DEFAULT_SIZES;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td><span class="n"></span><span class="cell-sub c"></span></td><td></td><td></td><td><div class="row-actions"></div></td>`;
+      const nameEl = tr.querySelector(".n");
+      nameEl.textContent = p.name;
+      if (p.soldOut) {
+        const tag = document.createElement("span");
+        tag.className = "tag"; tag.textContent = "Sold out";
+        nameEl.appendChild(tag);
+      }
+      tr.querySelector(".c").textContent = p.category;
+      tr.children[1].textContent = fmtR(p.price);
+      tr.children[2].textContent = sizes.join(", ");
+
+      const editBtn = document.createElement("button");
+      editBtn.className = "del-btn"; editBtn.textContent = "Edit";
+      editBtn.addEventListener("click", () => startEdit(p));
+      const delBtn = document.createElement("button");
+      delBtn.className = "del-btn"; delBtn.textContent = "Remove";
+      delBtn.addEventListener("click", async () => {
+        if (!confirm("Remove " + p.name + " from the store?")) return;
+        try {
+          await db.collection("products").doc(p.id).delete();
+          if (editingId === p.id) resetForm();
+        } catch (err) { setStatus("admin-status", "Couldn't remove — try again."); }
+      });
+      const actions = tr.querySelector(".row-actions");
+      actions.appendChild(editBtn); actions.appendChild(delBtn);
+      body.appendChild(tr);
+    });
+  }, () => setStatus("admin-status", "Couldn't load products — check your Firestore rules."));
+}
+
+// ---------- Notices ----------
+function fmtDate(ms) {
+  return new Date(ms).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" });
+}
+function noticeState(n) {
+  if (n.active === false) return "Hidden";
+  if (n.expiresAt && n.expiresAt < Date.now()) return "Expired";
+  return "Live";
+}
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; }
+  catch (e) {
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (_) { ok = false; }
+    ta.remove();
+    return ok;
+  }
+}
+function actionBtn(label, onClick) {
+  const b = document.createElement("button");
+  b.className = "del-btn"; b.textContent = label;
+  b.addEventListener("click", onClick);
+  return b;
+}
+
+$("notice-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const title = $("n-title").value.trim();
+  const message = $("n-message").value.trim();
+  const level = $("n-level").value;
+  const dateStr = $("n-expires").value;
+  if (!title || !message) { setStatus("notice-status", "Add a title and a message."); return; }
+  const data = { title, message, level, active: true, createdAt: Date.now() };
+  if (dateStr) {
+    const t = new Date(dateStr + "T23:59:59").getTime();
+    if (isNaN(t) || t < Date.now()) { setStatus("notice-status", "Pick a date in the future, or leave it empty."); return; }
+    data.expiresAt = t;
+  }
+  try {
+    await db.collection("notices").add(data);
+    e.target.reset();
+    setStatus("notice-status", "Posted. It's live on the store now.");
+  } catch (err) {
+    setStatus("notice-status", "Couldn't post — check you're signed in as the admin and the new Firestore rules are published.");
+  }
+});
+
+function listenNotices() {
+  db.collection("notices").orderBy("createdAt", "desc").limit(50).onSnapshot(snap => {
+    const body = $("notice-table-body");
+    body.innerHTML = "";
+    if (snap.docs.length === 0) {
+      body.innerHTML = '<tr><td colspan="3">No notices yet.</td></tr>';
+      return;
+    }
+    snap.docs.forEach(d => {
+      const n = { id: d.id, ...d.data() };
+      const state = noticeState(n);
+      const tr = document.createElement("tr");
+      tr.innerHTML = '<td><span class="n"></span><span class="cell-sub s"></span></td><td></td><td><div class="row-actions"></div></td>';
+      tr.querySelector(".n").textContent = n.title;
+      tr.querySelector(".s").textContent =
+        (n.level === "important" ? "Important" : "Update") + " · " + fmtDate(n.createdAt) +
+        (n.expiresAt ? " · until " + fmtDate(n.expiresAt) : "");
+      tr.children[1].textContent = state;
+      const actions = tr.querySelector(".row-actions");
+      if (state !== "Expired") {
+        actions.appendChild(actionBtn(state === "Hidden" ? "Show" : "Hide", async () => {
+          try { await db.collection("notices").doc(n.id).update({ active: state === "Hidden" }); }
+          catch (err) { setStatus("notice-status", "Couldn't update — try again."); }
+        }));
+      }
+      actions.appendChild(actionBtn("Copy for WhatsApp", async () => {
+        const ok = await copyText("*" + n.title + "*\n" + n.message + "\n\n— Ragnar Clothing");
+        setStatus("notice-status", ok ? "Copied. Paste it into your WhatsApp community." : "Couldn't copy — select the text and copy it manually.");
+      }));
+      actions.appendChild(actionBtn("Delete", async () => {
+        if (!confirm("Delete this notice?")) return;
+        try { await db.collection("notices").doc(n.id).delete(); }
+        catch (err) { setStatus("notice-status", "Couldn't delete — try again."); }
+      }));
+      body.appendChild(tr);
+    });
+  }, () => setStatus("notice-status", "Couldn't load notices — publish the new Firestore rules first."));
+}
+
+// ---------- WhatsApp community link ----------
+function safeWhatsAppLink(url) {
+  try {
+    const u = new URL(url);
+    const hostOk = ["chat.whatsapp.com", "whatsapp.com", "www.whatsapp.com"].includes(u.hostname);
+    return u.protocol === "https:" && hostOk ? u.href : "";
+  } catch (e) { return ""; }
+}
+function loadCommunity() {
+  db.doc("settings/site").get().then(snap => {
+    if (snap.exists) $("c-link").value = (snap.data() || {}).communityLink || "";
+  }).catch(() => { /* rules not published yet — the form still works once they are */ });
+}
+$("community-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const raw = $("c-link").value.trim();
+  let link = "";
+  if (raw) {
+    link = safeWhatsAppLink(raw);
+    if (!link) { setStatus("community-status", "That doesn't look like a WhatsApp link. It should start with https://chat.whatsapp.com/"); return; }
+  }
+  try {
+    await db.doc("settings/site").set({ communityLink: link }, { merge: true });
+    setStatus("community-status", link ? "Saved. The join button is live." : "Link removed.");
+  } catch (err) {
+    setStatus("community-status", "Couldn't save — check you're signed in as the admin and the new Firestore rules are published.");
+  }
+});
+</script>
+</body>
+</html>

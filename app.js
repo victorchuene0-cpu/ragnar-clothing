@@ -27,11 +27,21 @@ function goCategory(cat) {
   document.getElementById("category-title-crumb").textContent = cat;
   renderCategoryGrid();
 }
+function goNotices() {
+  currentCategory = null;
+  showPage("notices");
+  document.querySelector('.nav-link[data-page="notices"]').classList.add("active");
+}
 document.getElementById("nav-home-btn").addEventListener("click", goHome);
 document.getElementById("back-to-home").addEventListener("click", goHome);
+document.getElementById("notices-back").addEventListener("click", goHome);
 document.getElementById("hero-shop-btn").addEventListener("click", () => goCategory(CATEGORIES[0]));
 document.querySelectorAll(".nav-link").forEach(btn => {
-  btn.addEventListener("click", () => btn.dataset.cat ? goCategory(btn.dataset.cat) : goHome());
+  btn.addEventListener("click", () => {
+    if (btn.dataset.page === "notices") goNotices();
+    else if (btn.dataset.cat) goCategory(btn.dataset.cat);
+    else goHome();
+  });
 });
 
 function renderCart() {
@@ -208,6 +218,87 @@ function renderCategoryGrid() {
   if (items.length === 0) { grid.innerHTML = '<p class="empty-note">Nothing here yet — check back soon.</p>'; return; }
   items.forEach(p => grid.appendChild(buildProductCard(p)));
 }
+
+// ---------- Notices & community link (posted from admin.html) ----------
+let notices = [];
+let noticesFailed = false;
+const DISMISS_KEY = "ragnar_dismissed_notice";
+
+function isLive(n) {
+  if (n.active === false) return false;
+  if (n.expiresAt && n.expiresAt < Date.now()) return false;
+  return true;
+}
+function safeWhatsAppLink(url) {
+  try {
+    const u = new URL(url);
+    const hostOk = ["chat.whatsapp.com", "whatsapp.com", "www.whatsapp.com"].includes(u.hostname);
+    return u.protocol === "https:" && hostOk ? u.href : "";
+  } catch (e) { return ""; }
+}
+function fmtDate(ms) {
+  return new Date(ms).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" });
+}
+
+function renderBanner(live) {
+  const el = document.getElementById("notice-banner");
+  const top = live.find(n => n.level === "important");
+  let dismissed = null;
+  try { dismissed = localStorage.getItem(DISMISS_KEY); } catch (e) { /* storage blocked — fine */ }
+  if (!top || top.id === dismissed) { el.hidden = true; return; }
+  el.dataset.id = top.id;
+  document.getElementById("notice-banner-title").textContent = top.title || "Notice";
+  document.getElementById("notice-banner-text").textContent = top.message || "";
+  el.hidden = false;
+}
+
+function renderNotices() {
+  const list = document.getElementById("notice-list");
+  const live = noticesFailed ? [] : notices.filter(isLive);
+  list.innerHTML = "";
+  if (noticesFailed) {
+    list.innerHTML = '<p class="empty-note">Notices are unavailable right now.</p>';
+  } else if (live.length === 0) {
+    list.innerHTML = '<p class="empty-note">No notices right now.</p>';
+  }
+  live.forEach(n => {
+    const card = document.createElement("article");
+    card.className = "notice-card" + (n.level === "important" ? " important" : "");
+    card.innerHTML = '<div class="notice-meta"><span class="notice-tag"></span><time></time></div><h3></h3><p></p>';
+    card.querySelector(".notice-tag").textContent = n.level === "important" ? "Important" : "Update";
+    card.querySelector("time").textContent = n.createdAt ? fmtDate(n.createdAt) : "";
+    card.querySelector("h3").textContent = n.title || "";
+    card.querySelector("p").textContent = n.message || "";
+    list.appendChild(card);
+  });
+  renderBanner(live);
+}
+
+document.getElementById("notice-banner-more").addEventListener("click", goNotices);
+document.getElementById("notice-banner-close").addEventListener("click", () => {
+  const el = document.getElementById("notice-banner");
+  try { localStorage.setItem(DISMISS_KEY, el.dataset.id || ""); } catch (e) { /* ignore */ }
+  el.hidden = true;
+});
+
+db.collection("notices").orderBy("createdAt", "desc").limit(30).onSnapshot(
+  (snap) => { notices = snap.docs.map(d => ({ id: d.id, ...d.data() })); noticesFailed = false; renderNotices(); },
+  () => { noticesFailed = true; renderNotices(); }
+);
+
+db.doc("settings/site").onSnapshot(
+  (snap) => {
+    const raw = snap.exists ? ((snap.data() || {}).communityLink || "") : "";
+    const link = safeWhatsAppLink(raw);
+    document.getElementById("community-box").hidden = !link;
+    document.getElementById("footer-community").hidden = !link;
+    if (link) {
+      document.getElementById("community-btn").href = link;
+      document.getElementById("footer-community").href = link;
+    }
+  },
+  () => { /* settings unreadable — simply no community button */ }
+);
 
 // Live from Firestore — public read, write locked to the signed-in admin only (see firestore.rules)
 db.collection("products").orderBy("createdAt", "asc").onSnapshot(

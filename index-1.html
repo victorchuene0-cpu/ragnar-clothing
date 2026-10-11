@@ -21,10 +21,20 @@
       <button class="nav-link" data-cat="Sweaters">Sweaters</button>
       <button class="nav-link" data-cat="Tracksuits">Tracksuits</button>
       <button class="nav-link" data-cat="Hats">Hats</button>
+      <button class="nav-link" data-page="notices">Notices</button>
     </div>
     <button class="nav-cart" id="cart-toggle">Bag (<span id="cart-count">0</span>)</button>
   </div>
 </nav>
+
+<div class="notice-banner" id="notice-banner" hidden role="status">
+  <div class="notice-banner-inner">
+    <strong class="notice-banner-title" id="notice-banner-title"></strong>
+    <span class="notice-banner-text" id="notice-banner-text"></span>
+    <button type="button" class="notice-banner-more" id="notice-banner-more">Read more</button>
+  </div>
+  <button type="button" class="notice-banner-close" id="notice-banner-close" aria-label="Dismiss notice">&times;</button>
+</div>
 
 <main id="storefront">
   <div class="page active" id="page-home">
@@ -67,6 +77,20 @@
       <div class="product-grid" id="category-grid"></div>
     </div>
   </div>
+
+  <div class="page" id="page-notices">
+    <div class="wrap">
+      <div class="page-head">
+        <div class="breadcrumb"><button id="notices-back">Home</button> / Notices</div>
+        <h2>Notices</h2>
+      </div>
+      <div class="community-box" id="community-box" hidden>
+        <p>Get announcements first in our WhatsApp community.</p>
+        <a class="btn btn-primary" id="community-btn" href="#" target="_blank" rel="noopener noreferrer">Join our WhatsApp community</a>
+      </div>
+      <div class="notice-list" id="notice-list"><p class="empty-note">Loading…</p></div>
+    </div>
+  </div>
 </main>
 
 <footer>
@@ -74,6 +98,7 @@
     <div class="footer-row">
       <span class="footer-note">© 2026 Ragnar Clothing. Self-made in Limpopo.</span>
       <div class="footer-links">
+        <a href="#" id="footer-community" target="_blank" rel="noopener noreferrer" hidden>Community</a>
         <a href="https://www.tiktok.com" target="_blank" rel="noopener">TikTok</a>
         <a href="https://wa.me/27665411726" target="_blank" rel="noopener">WhatsApp</a>
       </div>
