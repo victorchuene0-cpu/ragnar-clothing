@@ -2,7 +2,9 @@ const WHATSAPP_NUMBER = "27665411726";
 // Shoppers pick WHO it's for first (department), then the product type.
 const DEPARTMENTS = ["Men", "Women", "Teens", "Kids"];
 const DEFAULT_AUDIENCE = ["Men", "Women"];   // items saved before audiences existed are treated as adult unisex until the owner sets one
-const CATEGORIES = ["Hoodies", "Sweaters", "Tracksuits", "Hats"];
+// Product types are edited by the owner (admin -> Categories) and stored in settings/site. These are only the starting set.
+const DEFAULT_CATEGORIES = ["Hoodies", "Sweaters", "Tracksuits", "Hats"];
+let categories = DEFAULT_CATEGORIES.slice();
 const ALL = "__all__";                        // "Everything" inside a department
 let products = [];
 let catalogLoaded = false;
@@ -16,6 +18,22 @@ function fmtR(n) { return "R" + Number(n).toLocaleString("en-ZA"); }
 function audiencesFor(p) {
   const a = Array.isArray(p.audience) ? p.audience.filter(x => DEPARTMENTS.includes(x)) : [];
   return a.length ? a : DEFAULT_AUDIENCE;
+}
+function cleanCategories(raw) {
+  if (!Array.isArray(raw)) return DEFAULT_CATEGORIES.slice();   // never saved yet -> starting set
+  const seen = new Set(), out = [];
+  raw.forEach(v => {
+    if (typeof v !== "string") return;
+    const t = v.trim().slice(0, 30), k = t.toLowerCase();
+    if (t && !seen.has(k)) { seen.add(k); out.push(t); }
+  });
+  return out.slice(0, 30);
+}
+// Owner's order first, then any type still used by an item but missing from the list, so nothing ever disappears.
+function categoryOrder(items) {
+  const out = categories.slice();
+  items.forEach(p => { if (p.category && !out.includes(p.category)) out.push(p.category); });
+  return out;
 }
 function inDept(dept) { return products.filter(p => audiencesFor(p).includes(dept)); }
 
@@ -295,7 +313,7 @@ function renderTypeTiles(items) {
   root.innerHTML = "";
   if (items.length === 0) { root.innerHTML = '<p class="empty-note">Nothing here yet — check back soon.</p>'; return; }
   const entries = [{ key: ALL, label: "Everything", count: items.length, image: firstImage(items) }];
-  CATEGORIES.forEach(c => {
+  categoryOrder(items).forEach(c => {
     const list = items.filter(p => p.category === c);
     if (list.length > 0) entries.push({ key: c, label: c, count: list.length, image: firstImage(list) });
   });
@@ -413,7 +431,13 @@ db.collection("notices").orderBy("createdAt", "desc").limit(30).onSnapshot(
 
 db.doc("settings/site").onSnapshot(
   (snap) => {
-    const raw = snap.exists ? ((snap.data() || {}).communityLink || "") : "";
+    const data = snap.exists ? (snap.data() || {}) : {};
+    const nextCats = cleanCategories(data.categories);
+    if (JSON.stringify(nextCats) !== JSON.stringify(categories)) {   // only redraw when the list really changed
+      categories = nextCats;
+      if (catalogLoaded && currentDept) renderCategoryPage();
+    }
+    const raw = data.communityLink || "";
     const link = safeWhatsAppLink(raw);
     document.getElementById("community-box").hidden = !link;
     document.getElementById("footer-community").hidden = !link;

@@ -133,3 +133,35 @@ footer{padding:32px 0 48px;}
 .admin-form input[type=date],.admin-form input[type=url]{background:var(--surface-2);border:1px solid var(--line);color:var(--text);padding:10px 12px;border-radius:3px;font-size:14px;font-family:inherit;}
 .admin-hint{font-size:12px;color:var(--text-dim);margin:0;}
 .admin-divider{border:none;border-top:1px solid var(--line);margin:28px 0;}
+
+/* Department -> type navigation */
+.type-tiles{padding:24px 0;}
+.tile-grid>.empty-note,.product-grid>.empty-note{grid-column:1/-1;}
+.filter-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:18px 0 0;}
+.filter-label{font-size:12px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;margin-right:4px;}
+.filter-chip{min-height:36px;padding:0 14px;border:1px solid var(--line);border-radius:30px;background:none;color:var(--text);font-size:13px;cursor:pointer;}
+.filter-chip.active{background:var(--accent);border-color:var(--accent);color:#0a0a0a;}
+.size-group-label{flex-basis:100%;margin-top:4px;font-size:12px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;}
+
+/* Product photos */
+.product-photo{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:3px;background:var(--surface-2);margin-bottom:12px;}
+.product-card.sold-out .product-photo{opacity:.5;}
+.photo-box{display:flex;align-items:center;gap:14px;}
+.photo-preview{width:84px;height:105px;object-fit:cover;border-radius:3px;border:1px solid var(--line);background:var(--surface-2);}
+.photo-actions{display:flex;flex-direction:column;gap:8px;align-items:flex-start;}
+.photo-pick{cursor:pointer;padding:10px 16px;font-size:13px;}
+.thumb{width:36px;height:36px;object-fit:cover;border-radius:3px;vertical-align:middle;margin-right:8px;border:1px solid var(--line);}
+
+/* Publishing check + error text */
+.status-note.err{color:#f2b1af;}
+.conn-box{margin:0 0 16px;padding:10px 12px;border:1px solid var(--line);border-radius:4px;font-size:13px;line-height:1.45;color:var(--text-dim);}
+.conn-box p{margin:0;}
+.conn-box.good{border-color:#3d7a52;color:#8fd0a5;}
+.conn-box.bad{border-color:#d9534f;color:#f2b1af;background:rgba(217,83,79,.08);}
+.conn-uid{display:block;margin:10px 0;padding:8px 10px;background:var(--surface-2);border:1px solid var(--line);border-radius:3px;color:var(--text);font-size:13px;word-break:break-all;user-select:all;}
+
+/* Admin forms must never be wider than the screen (inputs have a built-in minimum width) */
+.admin-form{grid-template-columns:minmax(0,1fr);}
+.admin-form>*,.admin-row>*{min-width:0;}
+.admin-form input:not([type=checkbox]),.admin-form select,.admin-form textarea{width:100%;}
+.status-note,.admin-hint{overflow-wrap:anywhere;}

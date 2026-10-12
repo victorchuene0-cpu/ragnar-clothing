@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ragnar — Owner Panel</title>
+<link rel="icon" href="logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="admin-head wrap"><h2 style="font-size:18px;text-transform:uppercase;">Ragnar — Owner Panel</h2><a href="index.html" class="btn">View store</a></div>
+
+<div class="admin-shell" id="login-view">
+  <h2 style="margin-bottom:14px;">Sign in</h2>
+  <form class="admin-form" id="login-form">
+    <input type="email" id="login-email" placeholder="Email" required>
+    <input type="password" id="login-password" placeholder="Password" required>
+    <button type="submit" class="btn btn-primary" style="justify-content:center;">Sign in</button>
+  </form>
+  <p class="status-note" id="login-status"></p>
+</div>
+
+<div class="admin-shell" id="panel-view" style="display:none;max-width:700px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <h2>Manage store</h2>
+    <button class="btn" id="logout-btn">Sign out</button>
+  </div>
+
+  <div class="conn-box" id="conn-box" role="status" hidden>
+    <p id="conn-text"></p>
+    <div id="conn-uid-row" hidden>
+      <code class="conn-uid" id="conn-uid"></code>
+      <div class="row-actions">
+        <button type="button" class="del-btn" id="conn-copy">Copy UID</button>
+        <button type="button" class="del-btn" id="conn-retry">Check again</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-tabs">
+    <button type="button" class="admin-tab active" data-tab="products">Products</button>
+    <button type="button" class="admin-tab" data-tab="notices">Notices</button>
+    <button type="button" class="admin-tab" data-tab="categories">Categories</button>
+  </div>
+
+<div id="tab-products">
+  <form class="admin-form" id="product-form">
+    <h3 id="form-title">Add a new item</h3>
+    <div class="admin-row">
+      <input type="text" id="p-name" placeholder="Item name" required>
+      <select id="p-category" required>
+        <option value="">Category</option>
+      </select>
+    </div>
+    <div class="admin-row">
+      <input type="number" id="p-price" placeholder="Price (R)" min="0" required>
+      <input type="text" id="p-note" placeholder="Note (optional, e.g. winter drop)">
+    </div>
+
+    <div class="admin-label">Product photo</div>
+    <div class="photo-box">
+      <img id="p-photo-preview" class="photo-preview" alt="Photo preview" hidden>
+      <div class="photo-actions">
+        <label class="btn photo-pick">Choose photo<input type="file" id="p-photo" accept="image/*" hidden></label>
+        <button type="button" class="del-btn" id="p-photo-remove" hidden>Remove photo</button>
+      </div>
+    </div>
+    <p class="admin-hint">Take one now or pick from your gallery. It's shrunk automatically so the store stays quick on data. Press Save afterwards to publish it.</p>
+
+    <div class="admin-label">Who is it for?</div>
+    <div class="size-checks" id="audience-checks">
+      <label><input type="checkbox" value="Men"> Men</label>
+      <label><input type="checkbox" value="Women"> Women</label>
+      <label><input type="checkbox" value="Teens"> Teens (13-17)</label>
+      <label><input type="checkbox" value="Kids"> Kids (under 13)</label>
+    </div>
+    <p class="admin-hint">Tick every group it suits. Unisex = tick Men and Women. Shoppers pick this first, then the type.</p>
+
+    <div class="admin-label">Sizes available</div>
+    <div class="size-checks" id="size-checks">
+      <label><input type="checkbox" value="XS"> XS</label>
+      <label><input type="checkbox" value="S" checked> S</label>
+      <label><input type="checkbox" value="M" checked> M</label>
+      <label><input type="checkbox" value="L" checked> L</label>
+      <label><input type="checkbox" value="XL" checked> XL</label>
+      <label><input type="checkbox" value="XXL"> XXL</label>
+      <label><input type="checkbox" value="One size" id="size-one"> One size</label>
+      <span class="size-group-label">Kids &amp; teen age sizes</span>
+      <label><input type="checkbox" value="3-4 yrs"> 3-4 yrs</label>
+      <label><input type="checkbox" value="5-6 yrs"> 5-6 yrs</label>
+      <label><input type="checkbox" value="7-8 yrs"> 7-8 yrs</label>
+      <label><input type="checkbox" value="9-10 yrs"> 9-10 yrs</label>
+      <label><input type="checkbox" value="11-12 yrs"> 11-12 yrs</label>
+      <label><input type="checkbox" value="13-14 yrs"> 13-14 yrs</label>
+      <label><input type="checkbox" value="15-16 yrs"> 15-16 yrs</label>
+    </div>
+    <input type="text" id="p-other-sizes" placeholder="Other sizes, separated by commas (e.g. 3XL, 2-3 yrs)">
+
+    <label class="check-line"><input type="checkbox" id="p-soldout"> Mark as sold out</label>
+
+    <div class="admin-btn-row">
+      <button type="submit" class="btn btn-primary" id="save-btn">Publish to store</button>
+      <button type="button" class="btn" id="cancel-btn" style="display:none;">Cancel</button>
+    </div>
+    <p class="admin-hint">Publishing is instant. There is no separate publish step: the item is on the store the moment this page says <strong>Saved</strong>. If it says anything else, it is NOT live.</p>
+    <p class="status-note" id="admin-status"></p>
+  </form>
+
+  <table class="admin-table" id="admin-table">
+    <thead><tr><th>Item</th><th>Price</th><th>Sizes</th><th></th></tr></thead>
+    <tbody id="admin-table-body"></tbody>
+  </table>
+</div>
+
+<div id="tab-notices" hidden>
+  <form class="admin-form" id="notice-form">
+    <h3>Post a notice</h3>
+    <p class="admin-hint">Shows on the store's Notices page. "Important" notices also appear as a banner across the top until a visitor dismisses it.</p>
+    <input type="text" id="n-title" placeholder="Title (e.g. Next drop delayed)" maxlength="80" required>
+    <textarea id="n-message" placeholder="Message — say what's happening and when customers can expect an update" maxlength="1000" required></textarea>
+    <div class="admin-row">
+      <select id="n-level">
+        <option value="important">Important (banner + page)</option>
+        <option value="info">Update (page only)</option>
+      </select>
+      <input type="date" id="n-expires" aria-label="Hide after this date (optional)">
+    </div>
+    <p class="admin-hint">The date is optional: the notice hides itself after it, so old news doesn't stay up.</p>
+    <button type="submit" class="btn btn-primary" id="n-post">Post notice</button>
+    <p class="status-note" id="notice-status"></p>
+  </form>
+
+  <table class="admin-table" id="notice-table">
+    <thead><tr><th>Notice</th><th>Status</th><th></th></tr></thead>
+    <tbody id="notice-table-body"></tbody>
+  </table>
+
+  <hr class="admin-divider">
+
+  <form class="admin-form" id="community-form">
+    <h3>WhatsApp community link</h3>
+    <p class="admin-hint">In WhatsApp: open your community, tap its name, then choose the invite link option and copy it. Paste it here and a "Join our WhatsApp community" button appears on the Notices page and in the footer. Leave it empty to remove the button.</p>
+    <input type="url" id="c-link" placeholder="https://chat.whatsapp.com/...">
+    <button type="submit" class="btn btn-primary">Save link</button>
+    <p class="status-note" id="community-status"></p>
+  </form>
+</div>
+
+<div id="tab-categories" hidden>
+  <form class="admin-form" id="category-form">
+    <h3>Add a category</h3>
+    <p class="admin-hint">These are the types shoppers browse inside Men, Women, Teens and Kids (Hoodies, Sweaters&hellip;). A type only appears on the store once an item uses it, so you can add next season's types ahead of time.</p>
+    <div class="admin-row">
+      <input type="text" id="cat-name" maxlength="30" placeholder="e.g. T-shirts" aria-label="New category name">
+      <button type="submit" class="btn btn-primary" style="justify-content:center;">Add</button>
+    </div>
+    <p class="status-note" id="category-status"></p>
+  </form>
+
+  <table class="admin-table" id="category-table">
+    <thead><tr><th>Category</th><th>Items</th><th></th></tr></thead>
+    <tbody id="category-table-body"></tbody>
+  </table>
+  <p class="admin-hint" style="margin-top:12px;">Rename changes the name on every item that uses it. Remove is only allowed once no item uses the category. Use the arrows to set the order shoppers see.</p>
+</div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+const auth = firebase.auth();
+const DEFAULT_SIZES = ["S", "M", "L", "XL"];
+let editingId = null;
+let productsById = {};
+const DEFAULT_CATEGORIES = ["Hoodies", "Sweaters", "Tracksuits", "Hats"];
+let categories = DEFAULT_CATEGORIES.slice();
+
+function fmtR(n){return "R"+Number(n).toLocaleString("en-ZA");}
+const statusTimers = {};
+function setStatus(id, msg, opts) {
+  const el = document.getElementById(id), o = opts || {};
+  clearTimeout(statusTimers[id]);
+  el.textContent = msg;
+  el.classList.toggle("err", !!o.error);
+  if (msg && !o.sticky) statusTimers[id] = setTimeout(() => { el.textContent = ""; el.classList.remove("err"); }, o.ms || 4000);
+}
+function explainError(err) {
+  const code = err && err.code ? String(err.code) : "";
+  const text = String((err && err.message) || "");
+  if (code === "permission-denied" || /insufficient permissions|permission/i.test(text)) {
+    return "The database REFUSED this, so it is NOT live. Your Firestore rules don't recognise the account you're signed in with. Look at the red box at the top of this page: copy the UID shown there into your rules, Publish, then try again.";
+  }
+  if (code === "unavailable" || code === "timeout") return "Can't reach the database. Check your internet and try again. Nothing was saved.";
+  if (code === "invalid-argument" || code === "resource-exhausted") return "The database rejected this item as too big or invalid, usually a very large photo. Try a smaller photo. Nothing was saved.";
+  return "Couldn't save (" + (code || text || "unknown error") + "). Nothing was saved.";
+}
+const $ = (id) => document.getElementById(id);
+const sizeBoxes = () => Array.from(document.querySelectorAll("#size-checks input[type=checkbox]"));
+// ---------- Product photo (shrunk in the browser, stored inside the product) ----------
+const IMAGE_RE = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/]+=*$/;
+function safeImage(v) { return typeof v === "string" && IMAGE_RE.test(v) ? v : ""; }
+const IMG_STEPS = [[800, 0.78], [700, 0.7], [600, 0.65], [500, 0.6], [400, 0.55]];
+const IMG_GOOD_CHARS = 160000;   // aim for roughly 120 KB
+const IMG_MAX_CHARS = 600000;    // hard stop, well under Firestore's 1 MiB per-document limit
+let photoData;                   // undefined = leave as is, "" = remove, string = new photo
+let savedPhoto = "";             // photo already saved on the product being edited
+let photoBusy = false;
+
+function loadImage(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("unreadable")); };
+    img.src = url;
+  });
+}
+async function compressPhoto(file) {
+  if (!file || !/^image\//.test(file.type)) throw new Error("not-image");
+  const img = await loadImage(file);
+  const longest = Math.max(img.naturalWidth, img.naturalHeight);
+  if (!longest) throw new Error("unreadable");
+  let last = "";
+  for (const [maxDim, quality] of IMG_STEPS) {
+    const scale = Math.min(1, maxDim / longest);
+    const c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round(img.naturalWidth * scale));
+    c.height = Math.max(1, Math.round(img.naturalHeight * scale));
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = "#ffffff";                 // transparent PNGs would turn black as JPEG
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(img, 0, 0, c.width, c.height);
+    last = c.toDataURL("image/jpeg", quality);
+    if (last.length <= IMG_GOOD_CHARS) return last;
+  }
+  if (last.length <= IMG_MAX_CHARS) return last;
+  throw new Error("too-big");
+}
+function showPhoto(src) {
+  const ok = safeImage(src);
+  $("p-photo-preview").hidden = !ok;
+  if (ok) $("p-photo-preview").src = ok; else $("p-photo-preview").removeAttribute("src");
+  $("p-photo-remove").hidden = !ok;
+}
+$("p-photo").addEventListener("change", async () => {
+  const f = $("p-photo").files && $("p-photo").files[0];
+  if (!f) return;
+  photoBusy = true;
+  setStatus("admin-status", "Preparing photo…");
+  try {
+    photoData = await compressPhoto(f);
+    showPhoto(photoData);
+    setStatus("admin-status", "Photo ready. Press Save to publish it.");
+  } catch (err) {
+    showPhoto(photoData !== undefined ? photoData : savedPhoto);
+    setStatus("admin-status", "Couldn't use that photo. Try a JPG or PNG.");
+  } finally {
+    photoBusy = false;
+    try { $("p-photo").value = ""; } catch (e) { /* ignore */ }
+  }
+});
+$("p-photo-remove").addEventListener("click", () => { photoData = ""; showPhoto(""); });
+
+const audienceBoxes = () => Array.from(document.querySelectorAll("#audience-checks input[type=checkbox]"));
+const collectAudience = () => audienceBoxes().filter(b => b.checked).map(b => b.value);
+const setAudience = (list) => audienceBoxes().forEach(b => { b.checked = list.includes(b.value); });
+
+// ---------- Sign in ----------
+$("login-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    await auth.signInWithEmailAndPassword($("login-email").value, $("login-password").value);
+  } catch (err) { setStatus("login-status", "Sign-in failed — check email/password."); }
+});
+$("logout-btn").addEventListener("click", () => auth.signOut());
+
+// ---------- Publishing check: proves this account can really save to the store ----------
+let CHECK_TIMEOUT_MS = 8000;
+let signedInUser = null;
+async function checkPublishing(user) {
+  const box = $("conn-box"), text = $("conn-text"), uidRow = $("conn-uid-row");
+  const who = user.email || "this account";
+  box.hidden = false; box.className = "conn-box"; uidRow.hidden = true;
+  text.textContent = "Checking that saving works for " + who + "…";
+  let timer;
+  try {
+    await Promise.race([
+      db.doc("settings/health").set({ checkedAt: Date.now() }),
+      new Promise((_, reject) => { timer = setTimeout(() => reject({ code: "timeout" }), CHECK_TIMEOUT_MS); })
+    ]);
+    clearTimeout(timer);
+    if (signedInUser !== user) return;
+    box.className = "conn-box good";
+    text.textContent = "✔ Signed in as " + who + ". Saving works: anything you add here goes live on the store instantly.";
+  } catch (err) {
+    clearTimeout(timer);
+    if (signedInUser !== user) return;
+    box.className = "conn-box bad";
+    const code = err && err.code ? String(err.code) : "";
+    if (code === "permission-denied") {
+      text.textContent = "✖ Saving is BLOCKED. The database refuses changes from " + who + ", so nothing you add can go live. In Firebase → Firestore Database → Rules, the UID in quotes (all 3 places) must be exactly the one below. Publish the rules, then press Check again.";
+    } else if (code === "timeout" || code === "unavailable") {
+      text.textContent = "✖ Can't reach the database. Check your internet, then press Check again.";
+    } else {
+      text.textContent = "✖ Couldn't confirm that saving works (" + (code || (err && err.message) || "unknown error") + "). Press Check again.";
+    }
+    $("conn-uid").textContent = user.uid;
+    uidRow.hidden = false;
+  }
+}
+$("conn-copy").addEventListener("click", async () => {
+  const ok = await copyText($("conn-uid").textContent);
+  $("conn-copy").textContent = ok ? "Copied" : "Copy failed";
+  setTimeout(() => { $("conn-copy").textContent = "Copy UID"; }, 2500);
+});
+$("conn-retry").addEventListener("click", () => { if (signedInUser) checkPublishing(signedInUser); });
+
+let listening = false;
+auth.onAuthStateChanged(user => {
+  signedInUser = user || null;
+  $("login-view").style.display = user ? "none" : "block";
+  $("panel-view").style.display = user ? "block" : "none";
+  if (user) checkPublishing(user); else $("conn-box").hidden = true;
+  if (user && !listening) { listening = true; listenProducts(); listenNotices(); loadCommunity(); listenSettings(); }
+});
+
+// ---------- Tabs ----------
+document.querySelectorAll(".admin-tab").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".admin-tab").forEach(b => b.classList.toggle("active", b === btn));
+    $("tab-products").hidden = btn.dataset.tab !== "products";
+    $("tab-notices").hidden = btn.dataset.tab !== "notices";
+    $("tab-categories").hidden = btn.dataset.tab !== "categories";
+  });
+});
+
+// ---------- Size checkboxes: "One size" can't be mixed with specific sizes ----------
+$("size-checks").addEventListener("change", (e) => {
+  const t = e.target;
+  if (t.id === "size-one" && t.checked) {
+    sizeBoxes().forEach(b => { if (b !== t) b.checked = false; });
+    $("p-other-sizes").value = "";
+  } else if (t.checked) {
+    $("size-one").checked = false;
+  }
+});
+$("p-other-sizes").addEventListener("input", () => {
+  if ($("p-other-sizes").value.trim()) $("size-one").checked = false;
+});
+
+function collectSizes() {
+  const picked = sizeBoxes().filter(b => b.checked).map(b => b.value);
+  const extra = $("p-other-sizes").value.split(",").map(s => s.trim()).filter(Boolean);
+  return Array.from(new Set(picked.concat(extra)));
+}
+function setSizes(sizes) {
+  const known = sizeBoxes().map(b => b.value);
+  sizeBoxes().forEach(b => { b.checked = sizes.includes(b.value); });
+  $("p-other-sizes").value = sizes.filter(s => !known.includes(s)).join(", ");
+}
+
+// ---------- Add / edit ----------
+function resetForm() {
+  editingId = null;
+  $("product-form").reset();
+  setSizes(DEFAULT_SIZES);
+  photoData = undefined; savedPhoto = ""; showPhoto("");
+  fillCategorySelect();
+  $("form-title").textContent = "Add a new item";
+  $("save-btn").textContent = "Publish to store";
+  $("cancel-btn").style.display = "none";
+}
+$("cancel-btn").addEventListener("click", resetForm);
+
+function startEdit(p) {
+  editingId = p.id;
+  $("p-name").value = p.name || "";
+  fillCategorySelect(p.category);
+  $("p-category").value = p.category || "";
+  $("p-price").value = p.price != null ? p.price : "";
+  $("p-note").value = p.note || "";
+  $("p-soldout").checked = !!p.soldOut;
+  setAudience(Array.isArray(p.audience) ? p.audience : []);
+  savedPhoto = safeImage(p.image); photoData = undefined; showPhoto(savedPhoto);
+  setSizes(Array.isArray(p.sizes) && p.sizes.length ? p.sizes : DEFAULT_SIZES);
+  $("form-title").textContent = "Editing: " + p.name;
+  $("save-btn").textContent = "Publish changes";
+  $("cancel-btn").style.display = "";
+  $("product-form").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+let saving = false;
+$("product-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (saving) return;                       // a second press while a save is in flight must not add the item twice
+  const name = $("p-name").value.trim();
+  const category = $("p-category").value;
+  const price = Number($("p-price").value);
+  const note = $("p-note").value.trim();
+  const sizes = collectSizes();
+  const soldOut = $("p-soldout").checked;
+  const audience = collectAudience();
+  if (photoBusy) { setStatus("admin-status", "Photo is still being prepared. Try again in a second."); return; }
+  if (!name || !category || !price) { setStatus("admin-status", "Name, category and price are required."); return; }
+  if (audience.length === 0) { setStatus("admin-status", "Pick who it's for: Men, Women, Teens or Kids."); return; }
+  if (sizes.length === 0) { setStatus("admin-status", "Pick at least one size (or tick One size)."); return; }
+  const data = { name, category, audience, price, note, sizes, soldOut };
+  if (photoData !== undefined) data.image = photoData;   // untouched photo is left exactly as saved
+  // Saving only counts once the database confirms it. Until then it is NOT live.
+  const wasEdit = !!editingId;
+  saving = true;
+  $("save-btn").disabled = true;
+  setStatus("admin-status", "Saving… it is not live until this says Saved.", { sticky: true });
+  const slow = setTimeout(() => setStatus("admin-status", "Still saving… check your internet. It is NOT live yet.", { sticky: true }), 10000);
+  try {
+    if (wasEdit) await db.collection("products").doc(editingId).update(data);
+    else await db.collection("products").add({ ...data, createdAt: Date.now() });
+    clearTimeout(slow);
+    resetForm();
+    setStatus("admin-status", wasEdit ? "Saved. The change is live on the store now." : "Saved. It's live on the store now.", { ms: 8000 });
+  } catch (err) {
+    clearTimeout(slow);
+    setStatus("admin-status", explainError(err), { sticky: true, error: true });
+  } finally {
+    saving = false;
+    $("save-btn").disabled = false;
+  }
+});
+
+// ---------- List ----------
+function listenProducts() {
+  db.collection("products").orderBy("createdAt", "asc").onSnapshot(snap => {
+    const body = $("admin-table-body");
+    body.innerHTML = "";
+    productsById = {};
+    snap.docs.forEach(d => {
+      const p = { id: d.id, ...d.data() };
+      productsById[p.id] = p;
+      const sizes = Array.isArray(p.sizes) && p.sizes.length ? p.sizes : DEFAULT_SIZES;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td><span class="n"></span><span class="cell-sub c"></span></td><td></td><td></td><td><div class="row-actions"></div></td>`;
+      const nameEl = tr.querySelector(".n");
+      nameEl.textContent = p.name;
+      if (p.soldOut) {
+        const tag = document.createElement("span");
+        tag.className = "tag"; tag.textContent = "Sold out";
+        nameEl.appendChild(tag);
+      }
+      const aud = Array.isArray(p.audience) && p.audience.length ? p.audience : null;
+      const thumbSrc = safeImage(p.image);
+      if (thumbSrc) {
+        const th = document.createElement("img");
+        th.className = "thumb"; th.alt = ""; th.src = thumbSrc;
+        tr.children[0].insertBefore(th, tr.children[0].firstChild);
+      }
+      tr.querySelector(".c").textContent = p.category + " · " + (aud ? aud.join(", ") : "no audience set (shown as Men + Women)");
+      tr.children[1].textContent = fmtR(p.price);
+      tr.children[2].textContent = sizes.join(", ");
+
+      const editBtn = document.createElement("button");
+      editBtn.className = "del-btn"; editBtn.textContent = "Edit";
+      editBtn.addEventListener("click", () => startEdit(p));
+      const delBtn = document.createElement("button");
+      delBtn.className = "del-btn"; delBtn.textContent = "Remove";
+      delBtn.addEventListener("click", async () => {
+        if (!confirm("Remove " + p.name + " from the store?")) return;
+        try {
+          await db.collection("products").doc(p.id).delete();
+          if (editingId === p.id) resetForm();
+        } catch (err) { setStatus("admin-status", "Couldn't remove — try again."); }
+      });
+      const actions = tr.querySelector(".row-actions");
+      actions.appendChild(editBtn); actions.appendChild(delBtn);
+      body.appendChild(tr);
+    });
+    renderCategories();
+  }, () => setStatus("admin-status", "Couldn't load products — check your Firestore rules."));
+}
+
+// ---------- Notices ----------
+function fmtDate(ms) {
+  return new Date(ms).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" });
+}
+function noticeState(n) {
+  if (n.active === false) return "Hidden";
+  if (n.expiresAt && n.expiresAt < Date.now()) return "Expired";
+  return "Live";
+}
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; }
+  catch (e) {
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (_) { ok = false; }
+    ta.remove();
+    return ok;
+  }
+}
+function actionBtn(label, onClick) {
+  const b = document.createElement("button");
+  b.className = "del-btn"; b.textContent = label;
+  b.addEventListener("click", onClick);
+  return b;
+}
+
+$("notice-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const title = $("n-title").value.trim();
+  const message = $("n-message").value.trim();
+  const level = $("n-level").value;
+  const dateStr = $("n-expires").value;
+  if (!title || !message) { setStatus("notice-status", "Add a title and a message."); return; }
+  const data = { title, message, level, active: true, createdAt: Date.now() };
+  if (dateStr) {
+    const t = new Date(dateStr + "T23:59:59").getTime();
+    if (isNaN(t) || t < Date.now()) { setStatus("notice-status", "Pick a date in the future, or leave it empty."); return; }
+    data.expiresAt = t;
+  }
+  try {
+    await db.collection("notices").add(data);
+    e.target.reset();
+    setStatus("notice-status", "Posted. It's live on the store now.");
+  } catch (err) {
+    setStatus("notice-status", "Couldn't post — check you're signed in as the admin and the new Firestore rules are published.");
+  }
+});
+
+function listenNotices() {
+  db.collection("notices").orderBy("createdAt", "desc").limit(50).onSnapshot(snap => {
+    const body = $("notice-table-body");
+    body.innerHTML = "";
+    if (snap.docs.length === 0) {
+      body.innerHTML = '<tr><td colspan="3">No notices yet.</td></tr>';
+      return;
+    }
+    snap.docs.forEach(d => {
+      const n = { id: d.id, ...d.data() };
+      const state = noticeState(n);
+      const tr = document.createElement("tr");
+      tr.innerHTML = '<td><span class="n"></span><span class="cell-sub s"></span></td><td></td><td><div class="row-actions"></div></td>';
+      tr.querySelector(".n").textContent = n.title;
+      tr.querySelector(".s").textContent =
+        (n.level === "important" ? "Important" : "Update") + " · " + fmtDate(n.createdAt) +
+        (n.expiresAt ? " · until " + fmtDate(n.expiresAt) : "");
+      tr.children[1].textContent = state;
+      const actions = tr.querySelector(".row-actions");
+      if (state !== "Expired") {
+        actions.appendChild(actionBtn(state === "Hidden" ? "Show" : "Hide", async () => {
+          try { await db.collection("notices").doc(n.id).update({ active: state === "Hidden" }); }
+          catch (err) { setStatus("notice-status", "Couldn't update — try again."); }
+        }));
+      }
+      actions.appendChild(actionBtn("Copy for WhatsApp", async () => {
+        const ok = await copyText("*" + n.title + "*\n" + n.message + "\n\n— Ragnar Clothing");
+        setStatus("notice-status", ok ? "Copied. Paste it into your WhatsApp community." : "Couldn't copy — select the text and copy it manually.");
+      }));
+      actions.appendChild(actionBtn("Delete", async () => {
+        if (!confirm("Delete this notice?")) return;
+        try { await db.collection("notices").doc(n.id).delete(); }
+        catch (err) { setStatus("notice-status", "Couldn't delete — try again."); }
+      }));
+      body.appendChild(tr);
+    });
+  }, () => setStatus("notice-status", "Couldn't load notices — publish the new Firestore rules first."));
+}
+
+// ---------- Categories (owner-editable, stored in settings/site) ----------
+
+function cleanCategories(raw) {
+  if (!Array.isArray(raw)) return DEFAULT_CATEGORIES.slice();   // never saved yet -> starting set
+  const seen = new Set(), out = [];
+  raw.forEach(v => {
+    if (typeof v !== "string") return;
+    const t = v.trim().slice(0, 30), k = t.toLowerCase();
+    if (t && !seen.has(k)) { seen.add(k); out.push(t); }
+  });
+  return out.slice(0, 30);
+}
+function fillCategorySelect(extra) {
+  const sel = $("p-category");
+  const keep = sel.value;
+  sel.innerHTML = "";
+  const first = document.createElement("option");
+  first.value = ""; first.textContent = "Category";
+  sel.appendChild(first);
+  const names = categories.slice();
+  [keep, extra].forEach(x => { if (x && !names.includes(x)) names.push(x); });   // never blank out an item's current category
+  names.forEach(n => {
+    const o = document.createElement("option");
+    o.value = n; o.textContent = n;
+    sel.appendChild(o);
+  });
+  sel.value = keep;
+}
+function itemsIn(cat) { return Object.values(productsById).filter(p => p.category === cat); }
+function validateCategoryName(name, selfName) {
+  if (!name) return "Type a name first.";
+  if (name.length > 30) return "Keep it to 30 characters or fewer.";
+  if (categories.some(c => c !== selfName && c.toLowerCase() === name.toLowerCase())) return "You already have a category with that name.";
+  if (selfName == null && categories.length >= 20) return "That's already 20 categories. Remove one you no longer use first.";
+  return "";
+}
+async function saveCategories(list) {
+  await db.doc("settings/site").set({ categories: list }, { merge: true });
+}
+
+function renderCategories() {
+  const body = $("category-table-body");
+  body.innerHTML = "";
+  if (categories.length === 0) {
+    body.innerHTML = '<tr><td colspan="3">No categories yet. Add one above.</td></tr>';
+    return;
+  }
+  categories.forEach((name, i) => {
+    const n = itemsIn(name).length;
+    const tr = document.createElement("tr");
+    tr.innerHTML = '<td></td><td></td><td><div class="row-actions"></div></td>';
+    tr.children[0].textContent = name;
+    tr.children[1].textContent = String(n);
+    const actions = tr.querySelector(".row-actions");
+
+    const up = actionBtn("↑", () => moveCategory(i, -1));
+    up.setAttribute("aria-label", "Move " + name + " up"); up.disabled = i === 0;
+    const down = actionBtn("↓", () => moveCategory(i, 1));
+    down.setAttribute("aria-label", "Move " + name + " down"); down.disabled = i === categories.length - 1;
+    actions.appendChild(up); actions.appendChild(down);
+    actions.appendChild(actionBtn("Rename", () => renameCategory(name)));
+    actions.appendChild(actionBtn("Remove", () => removeCategory(name)));
+    body.appendChild(tr);
+  });
+}
+
+async function moveCategory(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= categories.length) return;
+  const list = categories.slice();
+  [list[i], list[j]] = [list[j], list[i]];
+  try { await saveCategories(list); }
+  catch (err) { setStatus("category-status", "Couldn't reorder. Check you're signed in as the admin."); }
+}
+
+async function renameCategory(oldName) {
+  const input = prompt('Rename "' + oldName + '" to:', oldName);
+  if (input === null) return;
+  const name = input.trim();
+  if (name === oldName) return;
+  const problem = validateCategoryName(name, oldName);
+  if (problem) { setStatus("category-status", problem); return; }
+  const affected = itemsIn(oldName);
+  if (affected.length > 400) { setStatus("category-status", "Too many items use this to rename in one go. Ask for help."); return; }
+  try {
+    // One atomic write: the list and every item using the old name change together, or nothing changes.
+    const batch = db.batch();
+    affected.forEach(p => batch.update(db.collection("products").doc(p.id), { category: name }));
+    batch.set(db.doc("settings/site"), { categories: categories.map(c => c === oldName ? name : c) }, { merge: true });
+    await batch.commit();
+    setStatus("category-status", affected.length
+      ? "Renamed. " + affected.length + " item" + (affected.length === 1 ? "" : "s") + " updated."
+      : "Renamed.");
+  } catch (err) {
+    setStatus("category-status", "Couldn't rename. Nothing was changed. Check you're signed in as the admin.");
+  }
+}
+
+async function removeCategory(name) {
+  const n = itemsIn(name).length;
+  if (n > 0) {
+    setStatus("category-status", name + " is used by " + n + " item" + (n === 1 ? "" : "s") + ". Delete or edit those items first, or rename it instead.");
+    return;
+  }
+  if (!confirm('Remove "' + name + '" from your categories?')) return;
+  try { await saveCategories(categories.filter(c => c !== name)); setStatus("category-status", "Removed."); }
+  catch (err) { setStatus("category-status", "Couldn't remove. Check you're signed in as the admin."); }
+}
+
+$("category-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const name = $("cat-name").value.trim();
+  const problem = validateCategoryName(name, null);
+  if (problem) { setStatus("category-status", problem); return; }
+  try {
+    await saveCategories(categories.concat(name));
+    $("cat-name").value = "";
+    setStatus("category-status", "Added. It's in the item dropdown now.");
+  } catch (err) {
+    setStatus("category-status", "Couldn't add. Check you're signed in as the admin and the Firestore rules are published.");
+  }
+});
+
+function listenSettings() {
+  db.doc("settings/site").onSnapshot(snap => {
+    categories = cleanCategories(snap.exists ? (snap.data() || {}).categories : undefined);
+    fillCategorySelect();
+    renderCategories();
+  }, () => setStatus("category-status", "Couldn't load categories. Check your Firestore rules."));
+}
+// Show the starting categories straight away, so the item form works even before (or without) the saved list loading.
+fillCategorySelect();
+renderCategories();
+
+// ---------- WhatsApp community link ----------
+function safeWhatsAppLink(url) {
+  try {
+    const u = new URL(url);
+    const hostOk = ["chat.whatsapp.com", "whatsapp.com", "www.whatsapp.com"].includes(u.hostname);
+    return u.protocol === "https:" && hostOk ? u.href : "";
+  } catch (e) { return ""; }
+}
+function loadCommunity() {
+  db.doc("settings/site").get().then(snap => {
+    if (snap.exists) $("c-link").value = (snap.data() || {}).communityLink || "";
+  }).catch(() => { /* rules not published yet — the form still works once they are */ });
+}
+$("community-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const raw = $("c-link").value.trim();
+  let link = "";
+  if (raw) {
+    link = safeWhatsAppLink(raw);
+    if (!link) { setStatus("community-status", "That doesn't look like a WhatsApp link. It should start with https://chat.whatsapp.com/"); return; }
+  }
+  try {
+    await db.doc("settings/site").set({ communityLink: link }, { merge: true });
+    setStatus("community-status", link ? "Saved. The join button is live." : "Link removed.");
+  } catch (err) {
+    setStatus("community-status", "Couldn't save — check you're signed in as the admin and the new Firestore rules are published.");
+  }
+});
+</script>
+</body>
+</html>
