@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ragnar — Owner Panel</title>
-<link rel="icon" href="logo.png">
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -27,9 +27,22 @@
     <button class="btn" id="logout-btn">Sign out</button>
   </div>
 
+  <div class="conn-box" id="conn-box" role="status" hidden>
+    <p id="conn-text"></p>
+    <div id="conn-uid-row" hidden>
+      <code class="conn-uid" id="conn-uid"></code>
+      <div class="row-actions">
+        <button type="button" class="del-btn" id="conn-copy">Copy UID</button>
+        <button type="button" class="del-btn" id="conn-retry">Check again</button>
+      </div>
+    </div>
+  </div>
+
   <div class="admin-tabs">
     <button type="button" class="admin-tab active" data-tab="products">Products</button>
     <button type="button" class="admin-tab" data-tab="notices">Notices</button>
+    <button type="button" class="admin-tab" data-tab="categories">Categories</button>
+    <button type="button" class="admin-tab" data-tab="info">Store info</button>
   </div>
 
 <div id="tab-products">
@@ -39,7 +52,6 @@
       <input type="text" id="p-name" placeholder="Item name" required>
       <select id="p-category" required>
         <option value="">Category</option>
-        <option>Hoodies</option><option>Sweaters</option><option>Tracksuits</option><option>Hats</option>
       </select>
     </div>
     <div class="admin-row">
@@ -86,12 +98,24 @@
     </div>
     <input type="text" id="p-other-sizes" placeholder="Other sizes, separated by commas (e.g. 3XL, 2-3 yrs)">
 
+    <div id="extras-block" hidden>
+      <div class="admin-label">Extra price for some sizes (optional)</div>
+      <p class="admin-hint">The price above is the base price. If a bigger size costs more, type how many rands extra. Leave it empty for no extra.</p>
+      <div class="extra-list" id="size-extras"></div>
+    </div>
+
+    <div class="admin-label">Colours (optional)</div>
+    <p class="admin-hint">Add a colour when customers must choose one. Each colour can have its own photo, its own extra price, and can be sold out on its own. Leave this empty if the item comes in one colour.</p>
+    <div class="color-list" id="color-list"></div>
+    <div class="starter-row"><button type="button" class="del-btn" id="color-add">Add a colour</button></div>
+
     <label class="check-line"><input type="checkbox" id="p-soldout"> Mark as sold out</label>
 
     <div class="admin-btn-row">
-      <button type="submit" class="btn btn-primary" id="save-btn">Add item</button>
+      <button type="submit" class="btn btn-primary" id="save-btn">Publish to store</button>
       <button type="button" class="btn" id="cancel-btn" style="display:none;">Cancel</button>
     </div>
+    <p class="admin-hint">Publishing is instant. There is no separate publish step: the item is on the store the moment this page says <strong>Saved</strong>. If it says anything else, it is NOT live.</p>
     <p class="status-note" id="admin-status"></p>
   </form>
 
@@ -134,6 +158,57 @@
     <p class="status-note" id="community-status"></p>
   </form>
 </div>
+
+<div id="tab-categories" hidden>
+  <form class="admin-form" id="category-form">
+    <h3>Add a category</h3>
+    <p class="admin-hint">These are the types shoppers browse inside Men, Women, Teens and Kids (Hoodies, Sweaters&hellip;). A type only appears on the store once an item uses it, so you can add next season's types ahead of time.</p>
+    <div class="admin-row">
+      <input type="text" id="cat-name" maxlength="30" placeholder="e.g. T-shirts" aria-label="New category name">
+      <button type="submit" class="btn btn-primary" style="justify-content:center;">Add</button>
+    </div>
+    <p class="status-note" id="category-status"></p>
+  </form>
+
+  <table class="admin-table" id="category-table">
+    <thead><tr><th>Category</th><th>Items</th><th></th></tr></thead>
+    <tbody id="category-table-body"></tbody>
+  </table>
+  <p class="admin-hint" style="margin-top:12px;">Rename changes the name on every item that uses it. Remove is only allowed once no item uses the category. Use the arrows to set the order shoppers see.</p>
+</div>
+
+<div id="tab-info" hidden>
+  <form class="admin-form" id="info-form" novalidate>
+    <h3>Delivery</h3>
+    <p class="admin-hint">The fee is added to the bag total, so customers see the real price before they message you. Leave it empty if it varies: the bag then says "to be confirmed" and you tell them in WhatsApp.</p>
+    <input type="number" id="i-fee" placeholder="Delivery fee in rands, e.g. 60 (0 = free)" min="0" max="10000" step="1" inputmode="numeric">
+    <textarea id="i-delivery" maxlength="600" placeholder="e.g. We dispatch within 3 working days of payment. Courier delivery takes 2-5 working days. Pre-order items ship on the date shown on the item."></textarea>
+
+    <h3>Returns &amp; refunds</h3>
+    <textarea class="tall" id="i-returns" maxlength="2000" placeholder="What customers can return, for how long, who pays for the return, and how refunds are made"></textarea>
+    <div class="starter-row"><button type="button" class="del-btn" id="i-returns-starter">Use starter wording</button></div>
+    <p class="admin-hint">Starter wording follows South Africa's rules for online sales (ECTA s44: 7 days to cancel, refund within 30 days; made-to-order items are excluded). It is a starting point, not legal advice. Edit it so it is true for your business and have it checked.</p>
+
+    <h3>Contact</h3>
+    <p class="admin-hint">South African online-trading law (ECTA s43) expects a shop website to show who is selling and how to reach them. Fill in what applies to you.</p>
+    <input type="text" id="i-name" maxlength="80" placeholder="Business name">
+    <input type="text" id="i-address" maxlength="200" placeholder="Physical address (street, town, province)">
+    <div class="admin-row">
+      <input type="tel" id="i-phone" maxlength="30" placeholder="Phone / WhatsApp number">
+      <input type="email" id="i-email" maxlength="100" placeholder="Email">
+    </div>
+    <input type="text" id="i-reg" maxlength="40" placeholder="Registration number (only if you have one)">
+
+    <h3>Privacy</h3>
+    <textarea class="tall" id="i-privacy" maxlength="2000" placeholder="How you handle customers' details"></textarea>
+    <div class="starter-row"><button type="button" class="del-btn" id="i-privacy-starter">Use starter wording</button></div>
+    <p class="admin-hint">Starter wording describes how this site really works: it stores no customer details, and delivery details stay on the customer's phone and reach you by WhatsApp. Change it if you do anything more with customers' details.</p>
+
+    <button type="submit" class="btn btn-primary" id="i-save">Publish store info</button>
+    <p class="admin-hint">It is live the moment this page says <strong>Saved</strong>. Anything else means it is NOT live. Text with [brackets] or ____ blanks is refused so unfinished wording can never go public.</p>
+    <p class="status-note" id="info-status"></p>
+  </form>
+</div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -145,9 +220,28 @@ const auth = firebase.auth();
 const DEFAULT_SIZES = ["S", "M", "L", "XL"];
 let editingId = null;
 let productsById = {};
+const DEFAULT_CATEGORIES = ["Hoodies", "Sweaters", "Tracksuits", "Hats"];
+let categories = DEFAULT_CATEGORIES.slice();
 
 function fmtR(n){return "R"+Number(n).toLocaleString("en-ZA");}
-function setStatus(id,msg){const el=document.getElementById(id);el.textContent=msg;setTimeout(()=>{el.textContent="";},4000);}
+const statusTimers = {};
+function setStatus(id, msg, opts) {
+  const el = document.getElementById(id), o = opts || {};
+  clearTimeout(statusTimers[id]);
+  el.textContent = msg;
+  el.classList.toggle("err", !!o.error);
+  if (msg && !o.sticky) statusTimers[id] = setTimeout(() => { el.textContent = ""; el.classList.remove("err"); }, o.ms || 4000);
+}
+function explainError(err) {
+  const code = err && err.code ? String(err.code) : "";
+  const text = String((err && err.message) || "");
+  if (code === "permission-denied" || /insufficient permissions|permission/i.test(text)) {
+    return "The database REFUSED this, so it is NOT live. Your Firestore rules don't recognise the account you're signed in with. Look at the red box at the top of this page: copy the UID shown there into your rules, Publish, then try again.";
+  }
+  if (code === "unavailable" || code === "timeout") return "Can't reach the database. Check your internet and try again. Nothing was saved.";
+  if (code === "invalid-argument" || code === "resource-exhausted") return "The database rejected this item as too big or invalid, usually a very large photo. Try a smaller photo. Nothing was saved.";
+  return "Couldn't save (" + (code || text || "unknown error") + "). Nothing was saved.";
+}
 const $ = (id) => document.getElementById(id);
 const sizeBoxes = () => Array.from(document.querySelectorAll("#size-checks input[type=checkbox]"));
 // ---------- Product photo (shrunk in the browser, stored inside the product) ----------
@@ -169,13 +263,13 @@ function loadImage(file) {
     img.src = url;
   });
 }
-async function compressPhoto(file) {
+async function compressPhoto(file, steps = IMG_STEPS, good = IMG_GOOD_CHARS, max = IMG_MAX_CHARS) {
   if (!file || !/^image\//.test(file.type)) throw new Error("not-image");
   const img = await loadImage(file);
   const longest = Math.max(img.naturalWidth, img.naturalHeight);
   if (!longest) throw new Error("unreadable");
   let last = "";
-  for (const [maxDim, quality] of IMG_STEPS) {
+  for (const [maxDim, quality] of steps) {
     const scale = Math.min(1, maxDim / longest);
     const c = document.createElement("canvas");
     c.width = Math.max(1, Math.round(img.naturalWidth * scale));
@@ -185,9 +279,9 @@ async function compressPhoto(file) {
     ctx.fillRect(0, 0, c.width, c.height);
     ctx.drawImage(img, 0, 0, c.width, c.height);
     last = c.toDataURL("image/jpeg", quality);
-    if (last.length <= IMG_GOOD_CHARS) return last;
+    if (last.length <= good) return last;
   }
-  if (last.length <= IMG_MAX_CHARS) return last;
+  if (last.length <= max) return last;
   throw new Error("too-big");
 }
 function showPhoto(src) {
@@ -219,6 +313,95 @@ const audienceBoxes = () => Array.from(document.querySelectorAll("#audience-chec
 const collectAudience = () => audienceBoxes().filter(b => b.checked).map(b => b.value);
 const setAudience = (list) => audienceBoxes().forEach(b => { b.checked = list.includes(b.value); });
 
+// ---------- Store info: delivery fee, wording and contact details (stored in settings/site) ----------
+const INFO_FIELDS = {   // input id -> [settings key, label, max length]
+  "i-delivery": ["deliveryText", "Delivery details", 600],
+  "i-returns": ["returnsText", "Returns & refunds", 2000],
+  "i-privacy": ["privacyText", "Privacy", 2000],
+  "i-name": ["bizName", "Business name", 80],
+  "i-address": ["bizAddress", "Physical address", 200],
+  "i-phone": ["bizPhone", "Phone", 30],
+  "i-email": ["bizEmail", "Email", 100],
+  "i-reg": ["bizReg", "Registration number", 40]
+};
+const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
+// Starter wording. No blanks to fill in, and nothing that is not true of this site. Based on ECTA s44 (cooling-off) and s42(2) (made-to-order items).
+const RETURNS_STARTER =
+  "Cancelling and returning an order\n" +
+  "You can cancel an online order and return the goods without giving a reason and without any penalty, within 7 days of receiving them. Message us on WhatsApp within those 7 days, then send the goods back to us. If you have already paid, we refund the full amount within 30 days of your cancellation. The only cost you pay is the direct cost of returning the goods to us.\n\n" +
+  "Made-to-order items\n" +
+  "Items made to your own specifications, or personalised for you, cannot be cancelled or returned this way unless they are faulty.\n\n" +
+  "Faulty or wrong items\n" +
+  "If something arrives faulty or is not what you ordered, message us on WhatsApp as soon as you notice, and we will repair, replace or refund it as the law requires. Nothing here limits your rights under the Consumer Protection Act.";
+const PRIVACY_STARTER =
+  "Your information\n" +
+  "This website does not store customers' personal information. When you place an order, the details you type (your name, number and delivery address) are kept only on your own device, so you do not have to type them again, and are sent to us in your WhatsApp message. We use them only to process and deliver your order and to contact you about it.\n\n" +
+  "We do not sell your details. If a courier delivers your order, we share only what they need to deliver it.\n\n" +
+  "Messages travel through WhatsApp, which has its own privacy policy. If you would like us to delete the details you sent us, message us on WhatsApp and we will do so.";
+let infoDirty = false, infoSaving = false;
+
+function hasPlaceholder(text) { return /\[[^\]]*\]/.test(text) || /_{3,}/.test(text); }
+function fillInfoForm(data) {
+  if (infoDirty) return;                 // never overwrite what the owner is in the middle of typing
+  $("i-fee").value = typeof data.deliveryFee === "number" ? String(data.deliveryFee) : "";
+  Object.keys(INFO_FIELDS).forEach(id => { const v = data[INFO_FIELDS[id][0]]; $(id).value = typeof v === "string" ? v : ""; });
+}
+// Returns { data } to save, or { error, focus } to show.
+function collectInfo() {
+  const data = {};
+  const feeRaw = $("i-fee").value.trim();
+  const feeMsg = "Delivery fee must be a whole number of rands between 0 and 10000, for example 60. Use 0 for free delivery, or leave it empty.";
+  // A number box reports unreadable typing (letters, pasted text) as an empty value. Treat that as an error, not as "no fee".
+  if ($("i-fee").validity && $("i-fee").validity.badInput) return { error: feeMsg, focus: "i-fee" };
+  if (feeRaw === "") data.deliveryFee = null;     // empty = "to be confirmed per order"
+  else {
+    const n = Number(feeRaw);
+    if (!Number.isInteger(n) || n < 0 || n > 10000) return { error: feeMsg, focus: "i-fee" };
+    data.deliveryFee = n;
+  }
+  for (const id of Object.keys(INFO_FIELDS)) {
+    const [key, label, max] = INFO_FIELDS[id];
+    const value = $(id).value.trim();
+    if (value.length > max) return { error: label + " is too long (" + max + " characters at most).", focus: id };
+    if (hasPlaceholder(value)) return { error: label + " still has a [bracketed] or ____ blank in it. Replace it with your real details or remove it. Unfinished wording must not go live.", focus: id };
+    data[key] = value;
+  }
+  if (data.bizEmail && !EMAIL_RE.test(data.bizEmail)) return { error: "That email address doesn't look right. Check it, or leave it empty.", focus: "i-email" };
+  return { data };
+}
+$("info-form").addEventListener("input", () => { infoDirty = true; });
+function useStarter(id, text) {
+  const el = $(id), cur = el.value.trim();
+  if (cur && cur !== text && !confirm("Replace what you've written with the starter wording?")) return;
+  el.value = text; infoDirty = true;
+  setStatus("info-status", "Starter wording added. Read it, change anything that isn't true for your business, then press Publish store info.", { ms: 9000 });
+}
+$("i-returns-starter").addEventListener("click", () => useStarter("i-returns", RETURNS_STARTER));
+$("i-privacy-starter").addEventListener("click", () => useStarter("i-privacy", PRIVACY_STARTER));
+
+$("info-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (infoSaving) return;
+  const r = collectInfo();
+  if (r.error) { setStatus("info-status", r.error, { sticky: true, error: true }); if (r.focus) $(r.focus).focus(); return; }
+  infoSaving = true;
+  $("i-save").disabled = true;
+  setStatus("info-status", "Saving… it is not live until this says Saved.", { sticky: true });
+  const slow = setTimeout(() => setStatus("info-status", "Still saving… check your internet. It is NOT live yet.", { sticky: true }), 10000);
+  try {
+    await db.doc("settings/site").set(r.data, { merge: true });
+    clearTimeout(slow);
+    infoDirty = false;
+    setStatus("info-status", "Saved. It's live on the store now.", { ms: 8000 });
+  } catch (err) {
+    clearTimeout(slow);
+    setStatus("info-status", explainError(err), { sticky: true, error: true });
+  } finally {
+    infoSaving = false;
+    $("i-save").disabled = false;
+  }
+});
+
 // ---------- Sign in ----------
 $("login-form").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -228,11 +411,54 @@ $("login-form").addEventListener("submit", async (e) => {
 });
 $("logout-btn").addEventListener("click", () => auth.signOut());
 
+// ---------- Publishing check: proves this account can really save to the store ----------
+let CHECK_TIMEOUT_MS = 8000;
+let signedInUser = null;
+async function checkPublishing(user) {
+  const box = $("conn-box"), text = $("conn-text"), uidRow = $("conn-uid-row");
+  const who = user.email || "this account";
+  box.hidden = false; box.className = "conn-box"; uidRow.hidden = true;
+  text.textContent = "Checking that saving works for " + who + "…";
+  let timer;
+  try {
+    await Promise.race([
+      db.doc("settings/health").set({ checkedAt: Date.now() }),
+      new Promise((_, reject) => { timer = setTimeout(() => reject({ code: "timeout" }), CHECK_TIMEOUT_MS); })
+    ]);
+    clearTimeout(timer);
+    if (signedInUser !== user) return;
+    box.className = "conn-box good";
+    text.textContent = "✔ Signed in as " + who + ". Saving works: anything you add here goes live on the store instantly.";
+  } catch (err) {
+    clearTimeout(timer);
+    if (signedInUser !== user) return;
+    box.className = "conn-box bad";
+    const code = err && err.code ? String(err.code) : "";
+    if (code === "permission-denied") {
+      text.textContent = "✖ Saving is BLOCKED. The database refuses changes from " + who + ", so nothing you add can go live. In Firebase → Firestore Database → Rules, the UID in quotes (all 3 places) must be exactly the one below. Publish the rules, then press Check again.";
+    } else if (code === "timeout" || code === "unavailable") {
+      text.textContent = "✖ Can't reach the database. Check your internet, then press Check again.";
+    } else {
+      text.textContent = "✖ Couldn't confirm that saving works (" + (code || (err && err.message) || "unknown error") + "). Press Check again.";
+    }
+    $("conn-uid").textContent = user.uid;
+    uidRow.hidden = false;
+  }
+}
+$("conn-copy").addEventListener("click", async () => {
+  const ok = await copyText($("conn-uid").textContent);
+  $("conn-copy").textContent = ok ? "Copied" : "Copy failed";
+  setTimeout(() => { $("conn-copy").textContent = "Copy UID"; }, 2500);
+});
+$("conn-retry").addEventListener("click", () => { if (signedInUser) checkPublishing(signedInUser); });
+
 let listening = false;
 auth.onAuthStateChanged(user => {
+  signedInUser = user || null;
   $("login-view").style.display = user ? "none" : "block";
   $("panel-view").style.display = user ? "block" : "none";
-  if (user && !listening) { listening = true; listenProducts(); listenNotices(); loadCommunity(); }
+  if (user) checkPublishing(user); else $("conn-box").hidden = true;
+  if (user && !listening) { listening = true; listenProducts(); listenNotices(); loadCommunity(); listenSettings(); }
 });
 
 // ---------- Tabs ----------
@@ -241,6 +467,8 @@ document.querySelectorAll(".admin-tab").forEach(btn => {
     document.querySelectorAll(".admin-tab").forEach(b => b.classList.toggle("active", b === btn));
     $("tab-products").hidden = btn.dataset.tab !== "products";
     $("tab-notices").hidden = btn.dataset.tab !== "notices";
+    $("tab-categories").hidden = btn.dataset.tab !== "categories";
+    $("tab-info").hidden = btn.dataset.tab !== "info";
   });
 });
 
@@ -269,14 +497,166 @@ function setSizes(sizes) {
   $("p-other-sizes").value = sizes.filter(s => !known.includes(s)).join(", ");
 }
 
+// ---------- Price differences: extra rands per size, and colours (each with its own photo, extra and sold-out switch) ----------
+const EXTRA_MAX = 10000, MAX_COLORS = 8;
+const COLOR_IMG_STEPS = [[600, 0.7], [500, 0.62], [420, 0.55], [360, 0.5]];
+const COLOR_IMG_GOOD = 90000, COLOR_IMG_MAX = 200000;     // smaller than the main photo so several colours fit in one item
+const DOC_MAX_CHARS = 950000;                               // Firestore refuses items over 1 MiB; stay clearly under
+let sizeExtraVals = {};     // size -> text typed in its "extra" box (kept while sizes are ticked on and off)
+let sizeKey = "";
+let colorState = [];        // [{ name, extra (text), image, soldOut }]
+let colorBusy = 0;
+
+function renderSizeExtras() {
+  const sizes = collectSizes();
+  const box = $("size-extras");
+  sizeKey = sizes.join("|");
+  box.innerHTML = "";
+  $("extras-block").hidden = sizes.length < 2;     // one size = nothing to compare
+  if (sizes.length < 2) return;
+  sizes.forEach(sz => {
+    const row = document.createElement("div"); row.className = "extra-row";
+    const lab = document.createElement("span"); lab.textContent = sz;
+    const inp = document.createElement("input");
+    inp.type = "number"; inp.min = "0"; inp.max = String(EXTRA_MAX); inp.step = "1"; inp.inputMode = "numeric";
+    inp.placeholder = "extra R (0 = none)"; inp.setAttribute("aria-label", "Extra rands for size " + sz);
+    inp.dataset.size = sz;
+    inp.value = sizeExtraVals[sz] || "";
+    inp.addEventListener("input", () => { sizeExtraVals[sz] = inp.value; });
+    row.appendChild(lab); row.appendChild(inp); box.appendChild(row);
+  });
+}
+function syncSizeExtras() { if (collectSizes().join("|") !== sizeKey) renderSizeExtras(); }
+$("size-checks").addEventListener("change", syncSizeExtras);
+$("p-other-sizes").addEventListener("input", syncSizeExtras);
+
+function colorPhotoCompress(file) {
+  // same routine as the main photo, with a tighter size target
+  return compressPhoto(file, COLOR_IMG_STEPS, COLOR_IMG_GOOD, COLOR_IMG_MAX);
+}
+function renderColors() {
+  const list = $("color-list");
+  list.innerHTML = "";
+  colorState.forEach((c, i) => {
+    const card = document.createElement("div"); card.className = "color-card";
+    const top = document.createElement("div"); top.className = "color-card-top";
+    const name = document.createElement("input");
+    name.type = "text"; name.maxLength = 30; name.placeholder = "Colour name, e.g. Black"; name.value = c.name;
+    name.setAttribute("aria-label", "Colour name");
+    name.addEventListener("input", () => { c.name = name.value; });
+    const extra = document.createElement("input");
+    extra.type = "number"; extra.min = "0"; extra.max = String(EXTRA_MAX); extra.step = "1"; extra.inputMode = "numeric";
+    extra.placeholder = "extra R"; extra.value = c.extra; extra.setAttribute("aria-label", "Extra rands for this colour");
+    extra.dataset.colorExtra = String(i);
+    extra.addEventListener("input", () => { c.extra = extra.value; });
+    top.appendChild(name); top.appendChild(extra);
+
+    const pbox = document.createElement("div"); pbox.className = "photo-box";
+    const prev = document.createElement("img"); prev.className = "photo-preview"; prev.alt = "Photo for " + (c.name || "this colour");
+    const shown = safeImage(c.image);
+    prev.hidden = !shown; if (shown) prev.src = shown;
+    const acts = document.createElement("div"); acts.className = "photo-actions";
+    const pick = document.createElement("label"); pick.className = "btn photo-pick"; pick.textContent = shown ? "Change photo" : "Photo for this colour";
+    const file = document.createElement("input"); file.type = "file"; file.accept = "image/*"; file.hidden = true;
+    file.addEventListener("change", async () => {
+      const f = file.files && file.files[0];
+      if (!f) return;
+      colorBusy++;
+      setStatus("admin-status", "Preparing photo…");
+      try {
+        c.image = await colorPhotoCompress(f);
+        setStatus("admin-status", "Photo ready. Press Save to publish it.");
+      } catch (e) { setStatus("admin-status", "Couldn't use that photo. Try a JPG or PNG."); }
+      finally { colorBusy--; renderColors(); }
+    });
+    pick.appendChild(file); acts.appendChild(pick);
+    if (shown) {
+      const rm = document.createElement("button"); rm.type = "button"; rm.className = "del-btn"; rm.textContent = "Remove photo";
+      rm.addEventListener("click", () => { c.image = ""; renderColors(); });
+      acts.appendChild(rm);
+    }
+    pbox.appendChild(prev); pbox.appendChild(acts);
+
+    const foot = document.createElement("div"); foot.className = "color-card-top";
+    const sold = document.createElement("label"); sold.className = "check-line";
+    const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = !!c.soldOut;
+    cb.addEventListener("change", () => { c.soldOut = cb.checked; });
+    sold.appendChild(cb); sold.appendChild(document.createTextNode(" Sold out"));
+    const del = document.createElement("button"); del.type = "button"; del.className = "del-btn"; del.textContent = "Remove colour";
+    del.addEventListener("click", () => { colorState.splice(i, 1); renderColors(); });
+    foot.appendChild(sold); foot.appendChild(del);
+    foot.style.justifyContent = "space-between"; foot.style.alignItems = "center";
+
+    card.appendChild(top); card.appendChild(pbox); card.appendChild(foot);
+    list.appendChild(card);
+  });
+  $("color-add").hidden = colorState.length >= MAX_COLORS;
+}
+$("color-add").addEventListener("click", () => {
+  if (colorState.length >= MAX_COLORS) return;
+  colorState.push({ name: "", extra: "", image: "", soldOut: false });
+  renderColors();
+  const names = $("color-list").querySelectorAll("input[type=text]");
+  if (names.length) names[names.length - 1].focus();
+});
+function setVariants(p) {
+  sizeExtraVals = {};
+  (Array.isArray(p && p.sizeExtras) ? p.sizeExtras : []).forEach(x => { if (x && typeof x.size === "string" && Number.isInteger(x.extra) && x.extra > 0) sizeExtraVals[x.size] = String(x.extra); });
+  colorState = (Array.isArray(p && p.colors) ? p.colors : []).filter(c => c && typeof c.name === "string").slice(0, MAX_COLORS)
+    .map(c => ({ name: c.name, extra: Number.isInteger(c.extra) && c.extra > 0 ? String(c.extra) : "", image: safeImage(c.image), soldOut: !!c.soldOut }));
+  renderSizeExtras(); renderColors();
+}
+// Reads an "extra rands" box. Blank = 0. Anything else must be a whole number from 0 to EXTRA_MAX.
+// (A number box silently turns typed junk into "", so the browser's own flag is checked too.)
+function readExtra(input, label) {
+  if (input.validity && input.validity.badInput) return { error: label + ": type a whole number of rands, like 50." };
+  const t = String(input.value).trim();
+  if (t === "") return { value: 0 };
+  const n = Number(t);
+  if (!Number.isInteger(n) || n < 0 || n > EXTRA_MAX) return { error: label + ": type a whole number of rands from 0 to " + EXTRA_MAX + "." };
+  return { value: n };
+}
+function collectVariants() {
+  const sizes = collectSizes();
+  const sizeExtras = [];
+  if (sizes.length >= 2) {
+    for (const inp of Array.from($("size-extras").querySelectorAll("input"))) {
+      const r = readExtra(inp, "Size " + inp.dataset.size + " extra");
+      if (r.error) return { error: r.error, focus: inp };
+      if (r.value > 0) sizeExtras.push({ size: inp.dataset.size, extra: r.value });
+    }
+  }
+  const colors = [], seen = new Set();
+  const extraInputs = Array.from($("color-list").querySelectorAll("input[data-color-extra]"));
+  for (let i = 0; i < colorState.length; i++) {
+    const c = colorState[i];
+    const name = c.name.trim();
+    const inp = extraInputs[i];
+    const bare = !name && !String(c.extra).trim() && !c.image && !c.soldOut;
+    if (bare) continue;                                     // an empty row the owner never filled in
+    if (!name) return { error: "Give every colour a name, or remove the empty one.", focus: $("color-list") };
+    if (name.length > 30) return { error: "Colour names can be 30 characters at most.", focus: $("color-list") };
+    const key = name.toLowerCase();
+    if (seen.has(key)) return { error: "You added " + name + " twice. Each colour once.", focus: $("color-list") };
+    seen.add(key);
+    const r = readExtra(inp, name + " extra");
+    if (r.error) return { error: r.error, focus: inp };
+    colors.push({ name, extra: r.value, image: safeImage(c.image), soldOut: !!c.soldOut });
+  }
+  return { sizeExtras, colors };
+}
+setVariants(null);
+
 // ---------- Add / edit ----------
 function resetForm() {
   editingId = null;
   $("product-form").reset();
   setSizes(DEFAULT_SIZES);
+  setVariants(null);
   photoData = undefined; savedPhoto = ""; showPhoto("");
+  fillCategorySelect();
   $("form-title").textContent = "Add a new item";
-  $("save-btn").textContent = "Add item";
+  $("save-btn").textContent = "Publish to store";
   $("cancel-btn").style.display = "none";
 }
 $("cancel-btn").addEventListener("click", resetForm);
@@ -284,6 +664,7 @@ $("cancel-btn").addEventListener("click", resetForm);
 function startEdit(p) {
   editingId = p.id;
   $("p-name").value = p.name || "";
+  fillCategorySelect(p.category);
   $("p-category").value = p.category || "";
   $("p-price").value = p.price != null ? p.price : "";
   $("p-note").value = p.note || "";
@@ -291,14 +672,17 @@ function startEdit(p) {
   setAudience(Array.isArray(p.audience) ? p.audience : []);
   savedPhoto = safeImage(p.image); photoData = undefined; showPhoto(savedPhoto);
   setSizes(Array.isArray(p.sizes) && p.sizes.length ? p.sizes : DEFAULT_SIZES);
+  setVariants(p);
   $("form-title").textContent = "Editing: " + p.name;
-  $("save-btn").textContent = "Save changes";
+  $("save-btn").textContent = "Publish changes";
   $("cancel-btn").style.display = "";
   $("product-form").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
+let saving = false;
 $("product-form").addEventListener("submit", async (e) => {
   e.preventDefault();
+  if (saving) return;                       // a second press while a save is in flight must not add the item twice
   const name = $("p-name").value.trim();
   const category = $("p-category").value;
   const price = Number($("p-price").value);
@@ -310,21 +694,48 @@ $("product-form").addEventListener("submit", async (e) => {
   if (!name || !category || !price) { setStatus("admin-status", "Name, category and price are required."); return; }
   if (audience.length === 0) { setStatus("admin-status", "Pick who it's for: Men, Women, Teens or Kids."); return; }
   if (sizes.length === 0) { setStatus("admin-status", "Pick at least one size (or tick One size)."); return; }
-  const data = { name, category, audience, price, note, sizes, soldOut };
+  if (colorBusy) { setStatus("admin-status", "A colour photo is still being prepared. Try again in a second."); return; }
+  const v = collectVariants();
+  if (v.error) { setStatus("admin-status", v.error); if (v.focus && v.focus.focus) v.focus.focus(); return; }
+  // sizeExtras and colors are always sent (empty when none) so editing an item can also clear them.
+  const data = { name, category, audience, price, note, sizes, soldOut, sizeExtras: v.sizeExtras, colors: v.colors };
   if (photoData !== undefined) data.image = photoData;   // untouched photo is left exactly as saved
+  // One item has to fit in Firestore's 1 MiB limit, photos included. Say so before saving, not after a vague failure.
+  const mainPhoto = photoData !== undefined ? photoData : savedPhoto;
+  const approx = (mainPhoto ? mainPhoto.length : 0) + v.colors.reduce((n, c) => n + c.image.length, 0) + JSON.stringify({ ...data, image: "", colors: v.colors.map(c => ({ ...c, image: "" })) }).length;
+  if (approx > DOC_MAX_CHARS) { setStatus("admin-status", "The photos on this item are too big together (" + Math.round(approx / 1000) + " KB, the limit is about " + Math.round(DOC_MAX_CHARS / 1000) + " KB). Remove one colour photo or the main photo, or use fewer colours."); return; }
+  // Saving only counts once the database confirms it. Until then it is NOT live.
+  const wasEdit = !!editingId;
+  saving = true;
+  $("save-btn").disabled = true;
+  setStatus("admin-status", "Saving… it is not live until this says Saved.", { sticky: true });
+  const slow = setTimeout(() => setStatus("admin-status", "Still saving… check your internet. It is NOT live yet.", { sticky: true }), 10000);
   try {
-    if (editingId) {
-      await db.collection("products").doc(editingId).update(data);
-      setStatus("admin-status", "Changes saved.");
-    } else {
-      await db.collection("products").add({ ...data, createdAt: Date.now() });
-      setStatus("admin-status", "Added.");
-    }
+    if (wasEdit) await db.collection("products").doc(editingId).update(data);
+    else await db.collection("products").add({ ...data, createdAt: Date.now() });
+    clearTimeout(slow);
     resetForm();
-  } catch (err) { setStatus("admin-status", "Couldn't save — are you signed in as the admin account?"); }
+    setStatus("admin-status", wasEdit ? "Saved. The change is live on the store now." : "Saved. It's live on the store now.", { ms: 8000 });
+  } catch (err) {
+    clearTimeout(slow);
+    setStatus("admin-status", explainError(err), { sticky: true, error: true });
+  } finally {
+    saving = false;
+    $("save-btn").disabled = false;
+  }
 });
 
 // ---------- List ----------
+function priceRangeText(p) {
+  const base = Number(p.price) || 0;
+  const sizes = Array.isArray(p.sizes) && p.sizes.length ? p.sizes : DEFAULT_SIZES;
+  const extraOf = (x) => (x && Number.isInteger(x.extra) && x.extra > 0 ? x.extra : 0);
+  const sx = sizes.map(s => extraOf((Array.isArray(p.sizeExtras) ? p.sizeExtras : []).find(x => x && x.size === s)));
+  const cs = (Array.isArray(p.colors) ? p.colors : []).filter(c => c && typeof c.name === "string").map(extraOf);
+  const cx = cs.length ? cs : [0];
+  const lo = base + Math.min(...sx) + Math.min(...cx), hi = base + Math.max(...sx) + Math.max(...cx);
+  return lo === hi ? fmtR(lo) : fmtR(lo) + " – " + fmtR(hi);
+}
 function listenProducts() {
   db.collection("products").orderBy("createdAt", "asc").onSnapshot(snap => {
     const body = $("admin-table-body");
@@ -351,8 +762,9 @@ function listenProducts() {
         tr.children[0].insertBefore(th, tr.children[0].firstChild);
       }
       tr.querySelector(".c").textContent = p.category + " · " + (aud ? aud.join(", ") : "no audience set (shown as Men + Women)");
-      tr.children[1].textContent = fmtR(p.price);
-      tr.children[2].textContent = sizes.join(", ");
+      tr.children[1].textContent = priceRangeText(p);
+      const colorNames = (Array.isArray(p.colors) ? p.colors : []).filter(c => c && typeof c.name === "string");
+      tr.children[2].textContent = sizes.join(", ") + (colorNames.length ? " / " + colorNames.map(c => c.name + (c.soldOut ? " (sold out)" : "")).join(", ") : "");
 
       const editBtn = document.createElement("button");
       editBtn.className = "del-btn"; editBtn.textContent = "Edit";
@@ -370,6 +782,7 @@ function listenProducts() {
       actions.appendChild(editBtn); actions.appendChild(delBtn);
       body.appendChild(tr);
     });
+    renderCategories();
   }, () => setStatus("admin-status", "Couldn't load products — check your Firestore rules."));
 }
 
@@ -461,6 +874,144 @@ function listenNotices() {
     });
   }, () => setStatus("notice-status", "Couldn't load notices — publish the new Firestore rules first."));
 }
+
+// ---------- Categories (owner-editable, stored in settings/site) ----------
+
+function cleanCategories(raw) {
+  if (!Array.isArray(raw)) return DEFAULT_CATEGORIES.slice();   // never saved yet -> starting set
+  const seen = new Set(), out = [];
+  raw.forEach(v => {
+    if (typeof v !== "string") return;
+    const t = v.trim().slice(0, 30), k = t.toLowerCase();
+    if (t && !seen.has(k)) { seen.add(k); out.push(t); }
+  });
+  return out.slice(0, 30);
+}
+function fillCategorySelect(extra) {
+  const sel = $("p-category");
+  const keep = sel.value;
+  sel.innerHTML = "";
+  const first = document.createElement("option");
+  first.value = ""; first.textContent = "Category";
+  sel.appendChild(first);
+  const names = categories.slice();
+  [keep, extra].forEach(x => { if (x && !names.includes(x)) names.push(x); });   // never blank out an item's current category
+  names.forEach(n => {
+    const o = document.createElement("option");
+    o.value = n; o.textContent = n;
+    sel.appendChild(o);
+  });
+  sel.value = keep;
+}
+function itemsIn(cat) { return Object.values(productsById).filter(p => p.category === cat); }
+function validateCategoryName(name, selfName) {
+  if (!name) return "Type a name first.";
+  if (name.length > 30) return "Keep it to 30 characters or fewer.";
+  if (categories.some(c => c !== selfName && c.toLowerCase() === name.toLowerCase())) return "You already have a category with that name.";
+  if (selfName == null && categories.length >= 20) return "That's already 20 categories. Remove one you no longer use first.";
+  return "";
+}
+async function saveCategories(list) {
+  await db.doc("settings/site").set({ categories: list }, { merge: true });
+}
+
+function renderCategories() {
+  const body = $("category-table-body");
+  body.innerHTML = "";
+  if (categories.length === 0) {
+    body.innerHTML = '<tr><td colspan="3">No categories yet. Add one above.</td></tr>';
+    return;
+  }
+  categories.forEach((name, i) => {
+    const n = itemsIn(name).length;
+    const tr = document.createElement("tr");
+    tr.innerHTML = '<td></td><td></td><td><div class="row-actions"></div></td>';
+    tr.children[0].textContent = name;
+    tr.children[1].textContent = String(n);
+    const actions = tr.querySelector(".row-actions");
+
+    const up = actionBtn("↑", () => moveCategory(i, -1));
+    up.setAttribute("aria-label", "Move " + name + " up"); up.disabled = i === 0;
+    const down = actionBtn("↓", () => moveCategory(i, 1));
+    down.setAttribute("aria-label", "Move " + name + " down"); down.disabled = i === categories.length - 1;
+    actions.appendChild(up); actions.appendChild(down);
+    actions.appendChild(actionBtn("Rename", () => renameCategory(name)));
+    actions.appendChild(actionBtn("Remove", () => removeCategory(name)));
+    body.appendChild(tr);
+  });
+}
+
+async function moveCategory(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= categories.length) return;
+  const list = categories.slice();
+  [list[i], list[j]] = [list[j], list[i]];
+  try { await saveCategories(list); }
+  catch (err) { setStatus("category-status", "Couldn't reorder. Check you're signed in as the admin."); }
+}
+
+async function renameCategory(oldName) {
+  const input = prompt('Rename "' + oldName + '" to:', oldName);
+  if (input === null) return;
+  const name = input.trim();
+  if (name === oldName) return;
+  const problem = validateCategoryName(name, oldName);
+  if (problem) { setStatus("category-status", problem); return; }
+  const affected = itemsIn(oldName);
+  if (affected.length > 400) { setStatus("category-status", "Too many items use this to rename in one go. Ask for help."); return; }
+  try {
+    // One atomic write: the list and every item using the old name change together, or nothing changes.
+    const batch = db.batch();
+    affected.forEach(p => batch.update(db.collection("products").doc(p.id), { category: name }));
+    batch.set(db.doc("settings/site"), { categories: categories.map(c => c === oldName ? name : c) }, { merge: true });
+    await batch.commit();
+    setStatus("category-status", affected.length
+      ? "Renamed. " + affected.length + " item" + (affected.length === 1 ? "" : "s") + " updated."
+      : "Renamed.");
+  } catch (err) {
+    setStatus("category-status", "Couldn't rename. Nothing was changed. Check you're signed in as the admin.");
+  }
+}
+
+async function removeCategory(name) {
+  const n = itemsIn(name).length;
+  if (n > 0) {
+    setStatus("category-status", name + " is used by " + n + " item" + (n === 1 ? "" : "s") + ". Delete or edit those items first, or rename it instead.");
+    return;
+  }
+  if (!confirm('Remove "' + name + '" from your categories?')) return;
+  try { await saveCategories(categories.filter(c => c !== name)); setStatus("category-status", "Removed."); }
+  catch (err) { setStatus("category-status", "Couldn't remove. Check you're signed in as the admin."); }
+}
+
+$("category-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const name = $("cat-name").value.trim();
+  const problem = validateCategoryName(name, null);
+  if (problem) { setStatus("category-status", problem); return; }
+  try {
+    await saveCategories(categories.concat(name));
+    $("cat-name").value = "";
+    setStatus("category-status", "Added. It's in the item dropdown now.");
+  } catch (err) {
+    setStatus("category-status", "Couldn't add. Check you're signed in as the admin and the Firestore rules are published.");
+  }
+});
+
+function listenSettings() {
+  db.doc("settings/site").onSnapshot(snap => {
+    const data = snap.exists ? (snap.data() || {}) : {};
+    categories = cleanCategories(data.categories);
+    fillCategorySelect();
+    renderCategories();
+    fillInfoForm(data);
+  }, () => setStatus("category-status", "Couldn't load categories. Check your Firestore rules."));
+}
+
+
+// Show the starting categories straight away, so the item form works even before (or without) the saved list loading.
+fillCategorySelect();
+renderCategories();
 
 // ---------- WhatsApp community link ----------
 function safeWhatsAppLink(url) {
