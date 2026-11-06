@@ -1,194 +1,487 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark scroll-smooth">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0a0a0a">
 <title>Ragnar Clothing</title>
-<meta name="description" content="Ragnar Clothing — self-made streetwear from Limpopo. Things we don't talk about.">
+<meta name="description" content="Ragnar Clothing — streetwear from Limpopo, South Africa. Things we don't talk about.">
 <link rel="icon" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="antialiased selection:bg-ragnar-accent selection:text-black">
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><!-- Icons: Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com - License: https://fontawesome.com/license/free (Icons: CC BY 4.0) --><symbol id="i-truck-fast" viewBox="0 0 640 512"><path d="M112 0C85.5 0 64 21.5 64 48V96H16c-8.8 0-16 7.2-16 16s7.2 16 16 16H64 272c8.8 0 16 7.2 16 16s-7.2 16-16 16H64 48c-8.8 0-16 7.2-16 16s7.2 16 16 16H64 240c8.8 0 16 7.2 16 16s-7.2 16-16 16H64 16c-8.8 0-16 7.2-16 16s7.2 16 16 16H64 208c8.8 0 16 7.2 16 16s-7.2 16-16 16H64V416c0 53 43 96 96 96s96-43 96-96H384c0 53 43 96 96 96s96-43 96-96h32c17.7 0 32-14.3 32-32s-14.3-32-32-32V288 256 237.3c0-17-6.7-33.3-18.7-45.3L512 114.7c-12-12-28.3-18.7-45.3-18.7H416V48c0-26.5-21.5-48-48-48H112zM544 237.3V256H416V160h50.7L544 237.3zM160 368a48 48 0 1 1 0 96 48 48 0 1 1 0-96zm272 48a48 48 0 1 1 96 0 48 48 0 1 1 -96 0z"/></symbol><symbol id="i-bars-staggered" viewBox="0 0 512 512"><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM64 256c0-17.7 14.3-32 32-32H480c17.7 0 32 14.3 32 32s-14.3 32-32 32H96c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></symbol><symbol id="i-magnifying-glass" viewBox="0 0 512 512"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></symbol><symbol id="i-bag-shopping" viewBox="0 0 448 512"><path d="M160 112c0-35.3 28.7-64 64-64s64 28.7 64 64v48H160V112zm-48 48H48c-26.5 0-48 21.5-48 48V416c0 53 43 96 96 96H352c53 0 96-43 96-96V208c0-26.5-21.5-48-48-48H336V112C336 50.1 285.9 0 224 0S112 50.1 112 112v48zm24 48a24 24 0 1 1 0 48 24 24 0 1 1 0-48zm152 24a24 24 0 1 1 48 0 24 24 0 1 1 -48 0z"/></symbol><symbol id="i-xmark" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></symbol><symbol id="i-arrow-down" viewBox="0 0 384 512"><path d="M169.4 470.6c12.5 12.5 32.8 12.5 45.3 0l160-160c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 370.8 224 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 306.7L54.6 265.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l160 160z"/></symbol><symbol id="i-gem" viewBox="0 0 512 512"><path d="M116.7 33.8c4.5-6.1 11.7-9.8 19.3-9.8H376c7.6 0 14.8 3.6 19.3 9.8l112 152c6.8 9.2 6.1 21.9-1.5 30.4l-232 256c-4.5 5-11 7.9-17.8 7.9s-13.2-2.9-17.8-7.9l-232-256c-7.7-8.5-8.3-21.2-1.5-30.4l112-152zm38.5 39.8c-3.3 2.5-4.2 7-2.1 10.5l57.4 95.6L63.3 192c-4.1 .3-7.3 3.8-7.3 8s3.2 7.6 7.3 8l192 16c.4 0 .9 0 1.3 0l192-16c4.1-.3 7.3-3.8 7.3-8s-3.2-7.6-7.3-8L301.5 179.8l57.4-95.6c2.1-3.5 1.2-8.1-2.1-10.5s-7.9-2-10.7 1L256 172.2 165.9 74.6c-2.8-3-7.4-3.4-10.7-1z"/></symbol><symbol id="i-shield-halved" viewBox="0 0 512 512"><path d="M256 0c4.6 0 9.2 1 13.4 2.9L457.7 82.8c22 9.3 38.4 31 38.3 57.2c-.5 99.2-41.3 280.7-213.6 363.2c-16.7 8-36.1 8-52.8 0C57.3 420.7 16.5 239.2 16 140c-.1-26.2 16.3-47.9 38.3-57.2L242.7 2.9C246.8 1 251.4 0 256 0zm0 66.8V444.8C394 378 431.1 230.1 432 141.4L256 66.8l0 0z"/></symbol><symbol id="i-truck-ramp-box" viewBox="0 0 640 512"><path d="M640 0V400c0 61.9-50.1 112-112 112c-61 0-110.5-48.7-112-109.3L48.4 502.9c-17.1 4.6-34.6-5.4-39.3-22.5s5.4-34.6 22.5-39.3L352 353.8V64c0-35.3 28.7-64 64-64H640zM576 400a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM23.1 207.7c-4.6-17.1 5.6-34.6 22.6-39.2l46.4-12.4 20.7 77.3c2.3 8.5 11.1 13.6 19.6 11.3l30.9-8.3c8.5-2.3 13.6-11.1 11.3-19.6l-20.7-77.3 46.4-12.4c17.1-4.6 34.6 5.6 39.2 22.6l41.4 154.5c4.6 17.1-5.6 34.6-22.6 39.2L103.7 384.9c-17.1 4.6-34.6-5.6-39.2-22.6L23.1 207.7z"/></symbol><symbol id="i-eye" viewBox="0 0 576 512"><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM144 256a144 144 0 1 1 288 0 144 144 0 1 1 -288 0zm144-64c0 35.3-28.7 64-64 64c-7.1 0-13.9-1.2-20.3-3.3c-5.5-1.8-11.9 1.6-11.7 7.4c.3 6.9 1.3 13.8 3.2 20.7c13.7 51.2 66.4 81.6 117.6 67.9s81.6-66.4 67.9-117.6c-11.1-41.5-47.8-69.4-88.6-71.1c-5.8-.2-9.2 6.1-7.4 11.7c2.1 6.4 3.3 13.2 3.3 20.3z"/></symbol><symbol id="i-box-open" viewBox="0 0 640 512"><path d="M58.9 42.1c3-6.1 9.6-9.6 16.3-8.7L320 64 564.8 33.4c6.7-.8 13.3 2.7 16.3 8.7l41.7 83.4c9 17.9-.6 39.6-19.8 45.1L439.6 217.3c-13.9 4-28.8-1.9-36.2-14.3L320 64 236.6 203c-7.4 12.4-22.3 18.3-36.2 14.3L37.1 170.6c-19.3-5.5-28.8-27.2-19.8-45.1L58.9 42.1zM321.1 128l54.9 91.4c14.9 24.8 44.6 36.6 72.5 28.6L576 211.6v167c0 22-15 41.2-36.4 46.6l-204.1 51c-10.2 2.6-20.9 2.6-31 0l-204.1-51C79 419.7 64 400.5 64 378.5v-167L191.6 248c27.8 8 57.6-3.8 72.5-28.6L318.9 128h2.2z"/></symbol><symbol id="i-circle-check" viewBox="0 0 512 512"><path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/></symbol><symbol id="i-trash-can" viewBox="0 0 448 512"><path d="M135.2 17.7C140.6 6.8 151.7 0 163.8 0H284.2c12.1 0 23.2 6.8 28.6 17.7L320 32h96c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 96 0 81.7 0 64S14.3 32 32 32h96l7.2-14.3zM32 128H416V448c0 35.3-28.7 64-64 64H96c-35.3 0-64-28.7-64-64V128zm96 64c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16z"/></symbol><symbol id="i-arrow-right" viewBox="0 0 448 512"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></symbol><symbol id="i-check" viewBox="0 0 448 512"><path d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/></symbol><symbol id="i-print" viewBox="0 0 512 512"><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zM432 248a24 24 0 1 1 0 48 24 24 0 1 1 0-48z"/></symbol><symbol id="i-plus" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></symbol><symbol id="i-minus" viewBox="0 0 448 512"><path d="M432 256c0 17.7-14.3 32-32 32L48 288c-17.7 0-32-14.3-32-32s14.3-32 32-32l352 0c17.7 0 32 14.3 32 32z"/></symbol><symbol id="i-lock" viewBox="0 0 448 512"><path d="M144 144v48H304V144c0-44.2-35.8-80-80-80s-80 35.8-80 80zM80 192V144C80 64.5 144.5 0 224 0s144 64.5 144 144v48h16c35.3 0 64 28.7 64 64V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V256c0-35.3 28.7-64 64-64H80z"/></symbol><symbol id="i-circle-exclamation" viewBox="0 0 512 512"><path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zm0-384c13.3 0 24 10.7 24 24V264c0 13.3-10.7 24-24 24s-24-10.7-24-24V152c0-13.3 10.7-24 24-24zM224 352a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"/></symbol><symbol id="i-arrow-left" viewBox="0 0 448 512"><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.2 288 416 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0L214.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></symbol><symbol id="i-instagram" viewBox="0 0 448 512"><path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"/></symbol><symbol id="i-tiktok" viewBox="0 0 448 512"><path d="M448,209.91a210.06,210.06,0,0,1-122.77-39.25V349.38A162.55,162.55,0,1,1,185,188.31V278.2a74.62,74.62,0,1,0,52.23,71.18V0l88,0a121.18,121.18,0,0,0,1.86,22.17h0A122.18,122.18,0,0,0,381,102.39a121.43,121.43,0,0,0,67,20.14Z"/></symbol><symbol id="i-whatsapp" viewBox="0 0 448 512"><path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/></symbol></svg>
 
-<a class="skip-link" href="#storefront">Skip to the shop</a>
-
-<div class="notice-banner" id="notice-banner" hidden role="status">
-  <div class="notice-banner-inner">
-    <strong class="notice-banner-title" id="notice-banner-title"></strong>
-    <span class="notice-banner-text" id="notice-banner-text"></span>
-    <button type="button" class="notice-banner-more" id="notice-banner-more">Read more</button>
-  </div>
-  <button type="button" class="notice-banner-close" id="notice-banner-close" aria-label="Dismiss notice">&times;</button>
+<!-- Important notice (posted in the owner panel). Replaces the announcement bar while it is showing. -->
+<div id="noticeBanner" hidden role="status" class="bg-ragnar-accent text-black font-bold text-xs md:text-sm py-2 px-4 text-center tracking-widest uppercase flex items-center justify-center gap-x-3 gap-y-1 flex-wrap">
+    <svg class="ic" viewBox="0 0 512 512" width="1.000em" height="1em" aria-hidden="true"><use href="#i-circle-exclamation"/></svg>
+    <strong id="noticeTitle"></strong>
+    <span id="noticeText" class="normal-case tracking-normal font-semibold"></span>
+    <button type="button" id="noticeMore" class="underline underline-offset-2">Read more</button>
+    <button type="button" id="noticeClose" class="text-base leading-none px-1" aria-label="Dismiss notice"><svg class="ic" viewBox="0 0 384 512" width="0.750em" height="1em" aria-hidden="true"><use href="#i-xmark"/></svg></button>
 </div>
-<div class="promo-strip">Order on WhatsApp. Pay with a secure Yoco link or EFT.</div>
 
-<nav class="topnav">
-  <div class="topnav-row">
-    <div class="nav-left">
-      <button type="button" class="menu-toggle" id="menu-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h16"/></svg>
-      </button>
-      <div class="nav-links" id="nav-links">
-        <button class="nav-link" data-page="home">Home</button>
-        <button class="nav-link" data-dept="Men" hidden>Men</button>
-        <button class="nav-link" data-dept="Women" hidden>Women</button>
-        <button class="nav-link" data-dept="Teens" hidden>Teens</button>
-        <button class="nav-link" data-dept="Kids" hidden>Kids</button>
-        <button class="nav-link" data-page="notices">Notices</button>
-        <button class="nav-link" data-page="info" hidden>Info</button>
-        <a class="nav-extra" href="https://wa.me/27665411726" target="_blank" rel="noopener">Message us on WhatsApp</a>
-        <button type="button" class="nav-close" id="menu-close" aria-label="Close menu">&times;</button>
-      </div>
-    </div>
-    <button type="button" class="nav-brand" id="nav-home-btn" aria-label="Ragnar Clothing, home">
-      <span class="brand-word">Ragnar<b>.</b></span>
-      <span class="brand-sub">Est 2024</span>
-    </button>
-    <button type="button" class="nav-cart" id="cart-toggle" aria-label="Open your bag">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8Z"/><path d="M9 8V7a3 3 0 0 1 6 0v1"/></svg>
-      <span class="cart-badge" id="cart-count">0</span>
-    </button>
-  </div>
-</nav>
+<!-- Top Announcement Bar -->
+<div id="announceBar" class="bg-ragnar-accent text-black font-bold text-xs md:text-sm py-2 px-4 text-center tracking-widest uppercase flex items-center justify-center gap-2">
+    <svg class="ic" viewBox="0 0 640 512" width="1.250em" height="1em" aria-hidden="true"><use href="#i-truck-fast"/></svg>
+    <span id="announceText">Order on WhatsApp | Secure Yoco card link or EFT</span>
+</div>
 
-<main id="storefront">
-  <div class="page active" id="page-home">
-    <header class="hero">
-      <img class="hero-mark" src="logo-mark.png" alt="" aria-hidden="true">
-      <div class="wrap hero-inner">
-        <span class="hero-badge"><i></i>Ragnar Clothing // Est 2024</span>
-        <h1 class="title">Things<br>we don't<br><span class="grad">talk about</span></h1>
-        <p class="tagline">Self-made streetwear carrying what's usually left unsaid. Cut and printed in small batches — no two drops the same.</p>
-        <div class="hero-cta">
-          <button class="btn btn-primary" id="hero-shop-btn">Shop the drop</button>
-          <a href="https://wa.me/27665411726" class="btn" target="_blank" rel="noopener">Message us direct</a>
+<!-- Main Sticky Navigation -->
+<header class="sticky top-0 z-40 glass-nav border-b border-ragnar-border transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+
+        <!-- Left: Mobile Menu Toggle & Links -->
+        <div class="flex items-center gap-4">
+            <button type="button" id="mobileMenuBtn" class="md:hidden text-2xl text-white hover:text-ragnar-accent focus:outline-none" aria-label="Open menu" aria-expanded="false" aria-controls="mobileNav">
+                <svg class="ic" viewBox="0 0 512 512" width="1.000em" height="1em" aria-hidden="true"><use href="#i-bars-staggered"/></svg>
+            </button>
+            <nav class="hidden md:flex items-center gap-8 font-semibold text-sm tracking-widest uppercase" aria-label="Main">
+                <a href="#catalog" class="hover:text-ragnar-accent transition">Shop All</a>
+                <a href="#drop" class="hover:text-ragnar-accent transition">Latest Drop</a>
+                <a href="#about" class="hover:text-ragnar-accent transition">Brand Story</a>
+            </nav>
         </div>
-      </div>
-    </header>
-    <section class="section" id="shop-section">
-      <div class="wrap">
-        <span class="eyebrow">Winter range</span>
-        <h2>Shop for</h2>
-        <p class="section-sub">Pick who it's for, then browse by type. Small batches — once a size is gone, it's gone until the next cut.</p>
-        <div class="tile-grid" id="home-tiles"><p class="empty-note">Loading…</p></div>
-      </div>
-    </section>
-    <section class="section">
-      <div class="wrap">
-        <span class="eyebrow">Three steps</span>
-        <h2>How to order</h2>
-        <div class="order-steps">
-          <div class="order-step"><span class="num">01</span><p><strong>Add your items</strong> to the bag, pick a size.</p></div>
-          <div class="order-step"><span class="num">02</span><p><strong>Tap complete order</strong> — opens WhatsApp filled in.</p></div>
-          <div class="order-step"><span class="num">03</span><p><strong>Pay securely</strong> — we reply on chat with a Yoco card-payment link, or EFT details if you prefer. We ship once your payment reflects.</p></div>
+
+        <!-- Center: Brand Logo -->
+        <a href="#" id="brandLink" class="text-center group" aria-label="Ragnar Clothing, home">
+            <span class="font-syne font-extrabold text-2xl sm:text-3xl tracking-tighter block text-white group-hover:text-ragnar-accent transition duration-300">
+                RAGNAR<span class="text-ragnar-accent group-hover:text-white">.</span>
+            </span>
+            <span class="text-[9px] tracking-[0.3em] text-ragnar-textMuted uppercase block -mt-1 font-bold">Luxury Streetwear</span>
+        </a>
+
+        <!-- Right: Search & Cart Icons -->
+        <div class="flex items-center gap-5">
+            <button type="button" id="searchBtn" class="text-lg hover:text-ragnar-accent transition" aria-label="Search" aria-expanded="false">
+                <svg class="ic" viewBox="0 0 512 512" width="1.000em" height="1em" aria-hidden="true"><use href="#i-magnifying-glass"/></svg>
+            </button>
+            <button type="button" id="cartToggleBtn" class="relative text-xl hover:text-ragnar-accent transition p-1" aria-label="Open your bag">
+                <svg class="ic" viewBox="0 0 448 512" width="0.875em" height="1em" aria-hidden="true"><use href="#i-bag-shopping"/></svg>
+                <span id="cartBadgeCount" class="absolute -top-1 -right-2 bg-ragnar-accent text-black font-extrabold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shadow-lg">0</span>
+            </button>
         </div>
-      </div>
+    </div>
+</header>
+
+<!-- Mobile Drawer Navigation -->
+<div id="mobileNav" class="fixed inset-0 z-50 bg-black/90 backdrop-filter backdrop-blur-lg hidden flex-col justify-between p-8 transition-opacity duration-300" role="dialog" aria-modal="true" aria-label="Menu">
+    <div class="flex justify-between items-center">
+        <span class="font-syne font-bold text-xl text-ragnar-accent">RAGNAR</span>
+        <button type="button" id="closeMobileNav" class="text-2xl text-white hover:text-ragnar-accent" aria-label="Close menu"><svg class="ic" viewBox="0 0 384 512" width="0.750em" height="1em" aria-hidden="true"><use href="#i-xmark"/></svg></button>
+    </div>
+    <nav class="flex flex-col gap-6 text-2xl font-syne font-bold uppercase tracking-wider text-center my-auto">
+        <a href="#catalog" class="mobile-link hover:text-ragnar-accent">Shop Collection</a>
+        <a href="#drop" class="mobile-link hover:text-ragnar-accent">Latest Drop</a>
+        <a href="#about" class="mobile-link hover:text-ragnar-accent">Brand Story</a>
+        <a href="#notices" class="mobile-link hover:text-ragnar-accent">Notices</a>
+        <a href="#info" id="mobileInfoLink" hidden class="mobile-link hover:text-ragnar-accent">Delivery &amp; Returns</a>
+        <a href="https://wa.me/27665411726" target="_blank" rel="noopener" class="text-ragnar-accent hover:underline text-lg font-sans">Contact Support</a>
+    </nav>
+    <div class="text-center text-xs text-ragnar-textMuted uppercase tracking-widest">
+        © <span class="yr">2026</span> Ragnar Clothing RSA. All Rights Reserved.
+    </div>
+</div>
+
+<!-- Search Overlay -->
+<div id="searchBar" class="fixed inset-x-0 top-20 z-30 bg-ragnar-dark border-b border-ragnar-border p-4 hidden shadow-2xl">
+    <div class="max-w-3xl mx-auto flex items-center gap-3">
+        <svg class="ic text-ragnar-textMuted text-lg" viewBox="0 0 512 512" width="1.000em" height="1em" aria-hidden="true"><use href="#i-magnifying-glass"/></svg>
+        <input type="text" id="searchInput" aria-label="Search the store" autocomplete="off" placeholder="Search by item name, hoodie, graphic tee..." class="w-full bg-transparent text-white border-none focus:outline-none font-medium placeholder-ragnar-textMuted">
+        <button type="button" id="closeSearch" class="text-ragnar-textMuted hover:text-white text-sm uppercase tracking-wider font-bold">Clear</button>
+    </div>
+</div>
+
+<!-- ============ STORE ============ -->
+<div id="viewHome">
+
+    <!-- Hero Section -->
+    <section id="drop" class="relative min-h-[85vh] flex items-center justify-center bg-ragnar-black overflow-hidden border-b border-ragnar-border">
+        <!-- Background Imagery & Overlays (the photo is chosen in the owner panel) -->
+        <img id="heroMark" src="logo-mark.png" alt="" aria-hidden="true" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(70vw,520px)] opacity-[0.06] select-none pointer-events-none">
+        <div id="heroBg" class="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-luminosity scale-105 transition-transform duration-1000"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-ragnar-black via-ragnar-black/60 to-transparent"></div>
+
+        <div class="relative max-w-5xl mx-auto px-4 text-center z-10 py-16 flex flex-col items-center">
+
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-ragnar-border/80 border border-ragnar-accent/40 text-ragnar-accent text-xs font-semibold uppercase tracking-widest mb-6 badge-pulse">
+                <span class="w-2 h-2 rounded-full bg-ragnar-accent"></span>
+                <span id="heroBadge">Things We Don't Talk About</span>
+            </div>
+
+            <h1 class="font-syne font-extrabold text-[30px] min-[360px]:text-4xl sm:text-6xl md:text-8xl tracking-tight uppercase leading-none mb-6">
+                <span id="heroTitle">RAGNAR</span> <span id="heroAccent" class="text-transparent bg-clip-text bg-gradient-to-r from-white via-ragnar-textMuted to-ragnar-accent">CLOTHING</span>
+            </h1>
+
+            <p id="heroText" class="max-w-2xl text-ragnar-textMuted text-sm sm:text-base md:text-lg mb-8 font-light tracking-wide">
+                Streetwear from Limpopo, South Africa. Designed by the owner of Ragnar Clothing, for people who say it with what they wear.
+            </p>
+
+            <!-- Drop Countdown Timer (only shows while the owner has set a real drop date in the future) -->
+            <div id="countdown" hidden class="grid grid-cols-4 gap-3 sm:gap-6 text-center mb-10 max-w-md w-full" role="timer" aria-label="Time until the drop">
+                <div class="bg-ragnar-card/90 border border-ragnar-border p-3 rounded-lg backdrop-blur">
+                    <span id="cdDays" class="font-syne text-xl sm:text-3xl font-extrabold text-white block">00</span>
+                    <span class="text-[10px] text-ragnar-textMuted uppercase font-bold tracking-wider">Days</span>
+                </div>
+                <div class="bg-ragnar-card/90 border border-ragnar-border p-3 rounded-lg backdrop-blur">
+                    <span id="cdHours" class="font-syne text-xl sm:text-3xl font-extrabold text-white block">00</span>
+                    <span class="text-[10px] text-ragnar-textMuted uppercase font-bold tracking-wider">Hours</span>
+                </div>
+                <div class="bg-ragnar-card/90 border border-ragnar-border p-3 rounded-lg backdrop-blur">
+                    <span id="cdMins" class="font-syne text-xl sm:text-3xl font-extrabold text-white block">00</span>
+                    <span class="text-[10px] text-ragnar-textMuted uppercase font-bold tracking-wider">Mins</span>
+                </div>
+                <div class="bg-ragnar-card/90 border border-ragnar-border p-3 rounded-lg backdrop-blur">
+                    <span id="cdSecs" class="font-syne text-xl sm:text-3xl font-extrabold text-ragnar-accent block">00</span>
+                    <span class="text-[10px] text-ragnar-textMuted uppercase font-bold tracking-wider">Secs</span>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+                <a href="#catalog" class="bg-ragnar-accent hover:bg-ragnar-accentHover text-black font-extrabold uppercase px-8 py-4 rounded-md tracking-wider text-sm transition transform hover:-translate-y-1 shadow-lg shadow-ragnar-accent/20 text-center">
+                    Explore Drop <svg class="ic ml-2" viewBox="0 0 384 512" width="0.750em" height="1em" aria-hidden="true"><use href="#i-arrow-down"/></svg>
+                </a>
+                <a href="#about" class="bg-ragnar-card border border-ragnar-border hover:border-white text-white font-bold uppercase px-8 py-4 rounded-md tracking-wider text-sm transition text-center">
+                    Brand Story
+                </a>
+            </div>
+
+        </div>
     </section>
-  </div>
 
-  <div class="page" id="page-category">
-    <div class="wrap">
-      <div class="page-head">
-        <div class="breadcrumb" id="breadcrumb"></div>
-        <h2 id="category-title"></h2>
-      </div>
-      <div class="tile-grid type-tiles" id="type-tiles"></div>
-      <div class="filter-row" id="size-filter" hidden></div>
-      <div class="product-grid" id="category-grid" hidden></div>
-    </div>
-  </div>
+    <!-- Main Content Section: Category Filters & Product Grid -->
+    <main id="catalog" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
 
-  <div class="page" id="page-notices">
-    <div class="wrap">
-      <div class="page-head">
-        <div class="breadcrumb"><button id="notices-back">Home</button> / Notices</div>
-        <h2>Notices</h2>
-      </div>
-      <div class="community-box" id="community-box" hidden>
-        <p>Get announcements first in our WhatsApp community.</p>
-        <a class="btn btn-primary" id="community-btn" href="#" target="_blank" rel="noopener noreferrer">Join our WhatsApp community</a>
-      </div>
-      <div class="notice-list" id="notice-list"><p class="empty-note">Loading…</p></div>
-    </div>
-  </div>
-  <div class="page" id="page-info">
-    <div class="wrap">
-      <div class="page-head">
-        <div class="breadcrumb"><button id="info-back">Home</button> / Info</div>
-        <h2>Delivery, returns &amp; contact</h2>
-      </div>
-      <div class="info-sections" id="info-sections"></div>
-    </div>
-  </div>
-</main>
+        <!-- Section Header & Filter Pills -->
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 border-b border-ragnar-border pb-6">
+            <div>
+                <span class="text-ragnar-accent text-xs font-bold uppercase tracking-widest">Catalog <span class="yr">2026</span></span>
+                <h2 class="font-syne text-[22px] min-[360px]:text-[26px] min-[400px]:text-3xl sm:text-4xl font-extrabold uppercase mt-1">Streetwear Inventory</h2>
+            </div>
 
-<footer>
-  <div class="wrap">
-    <div class="footer-row">
-      <div>
-        <span class="footer-brand">Ragnar Clothing</span>
-        <p class="footer-note">© 2026 Ragnar Clothing. Self-made in Limpopo.</p>
-      </div>
-      <div class="footer-links">
-        <a href="#" id="footer-info" hidden>Delivery &amp; returns</a>
-        <a href="#" id="footer-community" target="_blank" rel="noopener noreferrer" hidden>Community</a>
-        <a href="https://www.tiktok.com" target="_blank" rel="noopener">TikTok</a>
-        <a href="https://wa.me/27665411726" target="_blank" rel="noopener">WhatsApp</a>
-      </div>
+            <div class="flex flex-col gap-3 min-w-0 max-w-full md:items-end">
+                <!-- Who it's for (only shows when more than one group has stock) -->
+                <div id="audRow" hidden class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none max-w-full" role="group" aria-label="Who is it for"></div>
+                <!-- Horizontal Scrollable Category Filter -->
+                <div id="catRow" class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none max-w-full" role="group" aria-label="Category"></div>
+            </div>
+        </div>
+
+        <!-- Product Grid (Responsive 2 to 4 cols) -->
+        <div id="productGrid" class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+            <div class="col-span-full py-16 text-center text-ragnar-textMuted">
+                <p class="uppercase text-sm tracking-wider font-bold">Loading…</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Brand Philosophy Banner -->
+    <section id="about" class="bg-ragnar-dark border-t border-b border-ragnar-border py-20 my-10">
+        <div class="max-w-5xl mx-auto px-4 text-center">
+            <h3 id="aboutTitle" class="font-syne text-2xl sm:text-4xl font-extrabold uppercase mb-6">Designed For The Bold.</h3>
+            <p id="aboutText" class="text-ragnar-textMuted leading-relaxed max-w-3xl mx-auto text-sm sm:text-base mb-8">
+                Ragnar Clothing is streetwear designed in Limpopo, South Africa. Things we don't talk about, worn out loud.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left mt-12">
+                <div class="bg-ragnar-card p-6 rounded-lg border border-ragnar-border">
+                    <svg class="ic text-ragnar-accent text-2xl mb-4 block" viewBox="0 0 512 512" width="1.000em" height="1em" aria-hidden="true"><use href="#i-gem"/></svg>
+                    <h4 id="f1Title" class="font-syne font-bold uppercase text-base mb-2">Original Designs</h4>
+                    <p id="f1Text" class="text-xs text-ragnar-textMuted leading-normal">Every Ragnar piece is designed by the owner of the brand.</p>
+                </div>
+                <div class="bg-ragnar-card p-6 rounded-lg border border-ragnar-border">
+                    <svg class="ic text-ragnar-accent text-2xl mb-4 block" viewBox="0 0 512 512" width="1.000em" height="1em" aria-hidden="true"><use href="#i-shield-halved"/></svg>
+                    <h4 id="f2Title" class="font-syne font-bold uppercase text-base mb-2">Safe Checkout</h4>
+                    <p id="f2Text" class="text-xs text-ragnar-textMuted leading-normal">No payment is taken on this site. After you send your order on WhatsApp, we reply with a secure Yoco card link or EFT details.</p>
+                </div>
+                <div class="bg-ragnar-card p-6 rounded-lg border border-ragnar-border">
+                    <svg class="ic text-ragnar-accent text-2xl mb-4 block" viewBox="0 0 640 512" width="1.250em" height="1em" aria-hidden="true"><use href="#i-truck-ramp-box"/></svg>
+                    <h4 id="f3Title" class="font-syne font-bold uppercase text-base mb-2">Delivery Or Collection</h4>
+                    <p id="f3Text" class="text-xs text-ragnar-textMuted leading-normal">Choose delivery or collection at checkout. We confirm everything with you on WhatsApp.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<!-- ============ NOTICES ============ -->
+<section id="viewNotices" hidden class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 min-h-[60vh]">
+    <div class="mb-10 border-b border-ragnar-border pb-6">
+        <button type="button" class="back-home text-ragnar-textMuted hover:text-white text-xs font-bold uppercase tracking-widest mb-4 inline-flex items-center gap-2"><svg class="ic" viewBox="0 0 448 512" width="0.875em" height="1em" aria-hidden="true"><use href="#i-arrow-left"/></svg> Back to store</button>
+        <span class="text-ragnar-accent text-xs font-bold uppercase tracking-widest block">Updates</span>
+        <h2 class="font-syne text-3xl sm:text-4xl font-extrabold uppercase mt-1">Notices</h2>
     </div>
-  </div>
+    <div id="communityBox" hidden class="bg-ragnar-card border border-ragnar-border rounded-lg p-6 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <p class="text-sm text-ragnar-textMuted">Get announcements first in our WhatsApp community.</p>
+        <a id="communityBtn" href="#" target="_blank" rel="noopener noreferrer" class="btn-gold px-6 py-3 text-xs text-center whitespace-nowrap">Join our WhatsApp community</a>
+    </div>
+    <div id="noticeList" class="space-y-4"><p class="text-sm text-ragnar-textMuted">Loading…</p></div>
+</section>
+
+<!-- ============ DELIVERY, RETURNS & CONTACT ============ -->
+<section id="viewInfo" hidden class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 min-h-[60vh]">
+    <div class="mb-10 border-b border-ragnar-border pb-6">
+        <button type="button" class="back-home text-ragnar-textMuted hover:text-white text-xs font-bold uppercase tracking-widest mb-4 inline-flex items-center gap-2"><svg class="ic" viewBox="0 0 448 512" width="0.875em" height="1em" aria-hidden="true"><use href="#i-arrow-left"/></svg> Back to store</button>
+        <span class="text-ragnar-accent text-xs font-bold uppercase tracking-widest block">Good to know</span>
+        <h2 class="font-syne text-3xl sm:text-4xl font-extrabold uppercase mt-1">Delivery, Returns &amp; Contact</h2>
+    </div>
+    <div id="infoSections" class="space-y-4"></div>
+</section>
+
+<!-- Footer -->
+<footer class="bg-black text-ragnar-textMuted text-xs py-12 border-t border-ragnar-border">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
+        <div class="text-center md:text-left">
+            <span class="font-syne text-xl font-extrabold text-white block">RAGNAR CLOTHING</span>
+            <p id="footerTag" class="mt-1">Streetwear from Limpopo, South Africa.</p>
+        </div>
+        <div class="flex flex-col items-center gap-3">
+            <div class="flex items-center gap-6 text-lg text-white">
+                <a id="socIg" hidden href="#" target="_blank" rel="noopener noreferrer" class="hover:text-ragnar-accent transition" aria-label="Ragnar on Instagram"><svg class="ic" viewBox="0 0 448 512" width="0.875em" height="1em" aria-hidden="true"><use href="#i-instagram"/></svg></a>
+                <a id="socTt" hidden href="#" target="_blank" rel="noopener noreferrer" class="hover:text-ragnar-accent transition" aria-label="Ragnar on TikTok"><svg class="ic" viewBox="0 0 448 512" width="0.875em" height="1em" aria-hidden="true"><use href="#i-tiktok"/></svg></a>
+                <a href="https://wa.me/27665411726" target="_blank" rel="noopener" class="hover:text-ragnar-accent transition" aria-label="Message Ragnar on WhatsApp"><svg class="ic" viewBox="0 0 448 512" width="0.875em" height="1em" aria-hidden="true"><use href="#i-whatsapp"/></svg></a>
+            </div>
+            <div class="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 uppercase tracking-widest text-[10px] font-bold">
+                <a href="#notices" class="hover:text-white transition">Notices</a>
+                <a href="#info" id="footerInfo" hidden class="hover:text-white transition">Delivery &amp; Returns</a>
+                <a href="#" id="footerCommunity" hidden target="_blank" rel="noopener noreferrer" class="hover:text-white transition">Community</a>
+            </div>
+        </div>
+        <div class="text-center md:text-right">
+            <p>© <span class="yr">2026</span> RAGNAR CLOTHING. All Rights Reserved.</p>
+            <p class="text-[10px] text-zinc-600 mt-1">Built for South Africa</p>
+        </div>
+    </div>
 </footer>
 
-<div class="scrim" id="scrim"></div>
-<div class="cart-drawer" id="cart-drawer">
-  <div class="cart-head">
-    <h3 class="cart-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8Z"/><path d="M9 8V7a3 3 0 0 1 6 0v1"/></svg>Your bag</h3>
-    <button class="cart-close" id="cart-close" aria-label="Close bag">&times;</button>
-  </div>
-  <div class="cart-scroll">
-    <div class="cart-items" id="cart-items"><p class="cart-empty">Your bag is empty.</p></div>
-    <form class="delivery-form" id="delivery-form" autocomplete="on" novalidate>
-      <h4>Delivery details</h4>
-      <div class="method-row">
-        <label><input type="radio" name="method" value="Delivery" checked> Delivery</label>
-        <label><input type="radio" name="method" value="Collection"> I'll collect</label>
-      </div>
-      <input type="text" id="d-name" placeholder="Full name" autocomplete="name">
-      <input type="tel" id="d-phone" placeholder="Contact number" autocomplete="tel">
-      <div id="address-fields">
-        <input type="text" id="d-street" placeholder="Street address / house number" autocomplete="street-address">
-        <input type="text" id="d-suburb" placeholder="Suburb / village / township" autocomplete="address-level3">
-        <input type="text" id="d-city" placeholder="City / town" autocomplete="address-level2">
-        <div class="two-col">
-          <select id="d-province" autocomplete="address-level1">
-            <option value="">Province</option>
-            <option>Eastern Cape</option><option>Free State</option><option>Gauteng</option>
-            <option>KwaZulu-Natal</option><option>Limpopo</option><option>Mpumalanga</option>
-            <option>Northern Cape</option><option>North West</option><option>Western Cape</option>
-          </select>
-          <input type="text" id="d-postal" placeholder="Postal code" inputmode="numeric" maxlength="4" autocomplete="postal-code">
+<!-- PRODUCT QUICK-VIEW MODAL -->
+<div id="productModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="bg-ragnar-card border border-ragnar-border rounded-xl max-w-3xl w-full overflow-hidden shadow-2xl relative flex flex-col md:flex-row max-h-[90vh]">
+        <button type="button" id="closeProductModal" class="absolute top-4 right-4 z-10 text-xl text-ragnar-textMuted hover:text-white bg-black/60 rounded-full w-8 h-8 flex items-center justify-center" aria-label="Close">
+            <svg class="ic" viewBox="0 0 384 512" width="0.750em" height="1em" aria-hidden="true"><use href="#i-xmark"/></svg>
+        </button>
+        <div class="md:w-1/2 bg-black flex items-center justify-center overflow-hidden shrink-0">
+            <img id="modalImage" src="" alt="" class="w-full h-64 md:h-full object-cover">
+            <div id="modalNoImage" hidden class="w-full h-64 md:h-full min-h-[16rem] bg-ragnar-dark flex items-center justify-center"><img src="logo-mark.png" alt="" class="w-1/3 opacity-10"></div>
         </div>
-        <input type="text" id="d-notes" placeholder="Delivery notes (landmark, gate colour…)">
-      </div>
-      <p class="privacy-note">Saved on this device only, so you don't retype it next time. It's sent to us in your WhatsApp order and used only to deliver it.</p>
-      <p class="form-error" id="delivery-error"></p>
-    </form>
-  </div>
-  <div class="cart-foot">
-    <div class="cart-lines" id="cart-lines" hidden>
-      <div class="cart-line"><span>Items</span><span id="cart-subtotal">R0</span></div>
-      <div class="cart-line"><span>Delivery</span><span id="cart-delivery">R0</span></div>
+        <div class="md:w-1/2 p-6 flex flex-col justify-between overflow-y-auto">
+            <div>
+                <span id="modalCategory" class="text-ragnar-accent text-[10px] font-bold uppercase tracking-widest block mb-1">Category</span>
+                <h3 id="modalTitle" class="font-syne font-extrabold text-2xl uppercase mb-2 text-white">Product Name</h3>
+                <p id="modalPrice" class="font-syne font-bold text-xl text-ragnar-accent mb-4">R0.00</p>
+                <p id="modalDesc" class="text-xs text-ragnar-textMuted leading-relaxed mb-6"></p>
+
+                <!-- Colour Selector (only for items that come in more than one colour) -->
+                <div id="colorWrap" hidden class="mb-6">
+                    <label class="block text-xs font-bold uppercase tracking-wider mb-2 text-white" id="colorLabel">Select Colour</label>
+                    <div id="colorOptions" class="flex flex-wrap gap-2" role="group" aria-labelledby="colorLabel"></div>
+                </div>
+
+                <!-- Size Selector -->
+                <div class="mb-4">
+                    <label class="block text-xs font-bold uppercase tracking-wider mb-2 text-white" id="sizeLabel">Select Size</label>
+                    <div id="sizeOptions" class="flex flex-wrap gap-2" role="group" aria-labelledby="sizeLabel"></div>
+                </div>
+                <p id="modalError" class="text-[11px] text-red-400 font-bold min-h-[1rem] mb-2" role="alert"></p>
+            </div>
+
+            <div class="flex items-center gap-3 pt-4 border-t border-ragnar-border">
+                <button type="button" id="addToCartModalBtn" class="flex-1 btn-gold py-3 text-xs">
+                    <span id="addToCartLabel">Add To Bag</span> <svg class="ic ml-2" viewBox="0 0 448 512" width="0.875em" height="1em" aria-hidden="true"><use href="#i-bag-shopping"/></svg>
+                </button>
+            </div>
+        </div>
     </div>
-    <div class="cart-total"><span id="cart-total-label">Total</span><span id="cart-total">R0</span></div>
-    <p class="cart-info-link" id="cart-info-link" hidden><button type="button" id="cart-info-btn">Delivery &amp; returns info</button></p>
-    <p class="pay-note"><strong>No payment is taken on this site.</strong> After you send your order we reply on WhatsApp with a secure Yoco card link (or EFT details). Only pay links sent from our WhatsApp number, and don't pay before we reply.</p>
-    <a href="#" id="checkout-btn" class="btn btn-primary" style="width:100%;">Complete order via WhatsApp</a>
-  </div>
 </div>
+
+<!-- Click-away layer for the bag (invisible, like the design) -->
+<div id="cartScrim" class="fixed inset-0 z-[45] hidden"></div>
+
+<!-- SLIDE-OVER CART DRAWER -->
+<div id="cartDrawer" class="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-ragnar-dark border-l border-ragnar-border transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between shadow-2xl" role="dialog" aria-label="Your shopping bag" aria-modal="false">
+    <!-- Cart Header -->
+    <div class="p-6 border-b border-ragnar-border flex items-center justify-between">
+        <div class="flex items-center gap-2">
+            <svg class="ic text-ragnar-accent" viewBox="0 0 448 512" width="0.875em" height="1em" aria-hidden="true"><use href="#i-bag-shopping"/></svg>
+            <h3 class="font-syne font-extrabold text-lg uppercase tracking-wide">Your Shopping Bag</h3>
+        </div>
+        <button type="button" id="closeCartBtn" class="text-ragnar-textMuted hover:text-white text-xl" aria-label="Close bag">
+            <svg class="ic" viewBox="0 0 384 512" width="0.750em" height="1em" aria-hidden="true"><use href="#i-xmark"/></svg>
+        </button>
+    </div>
+
+    <!-- Cart Items List -->
+    <div id="cartItemsContainer" class="flex-1 overflow-y-auto p-6 space-y-4"></div>
+
+    <!-- Cart Summary & Checkout Action -->
+    <div class="p-6 border-t border-ragnar-border bg-ragnar-black space-y-3">
+        <div class="flex justify-between text-xs text-ragnar-textMuted">
+            <span>Subtotal</span>
+            <span id="cartSubtotal" class="font-bold text-white">R0.00</span>
+        </div>
+        <div class="flex justify-between text-xs text-ragnar-textMuted">
+            <span id="cartShippingLabel">Delivery</span>
+            <span id="cartShipping" class="font-bold text-white">R0.00</span>
+        </div>
+        <div class="flex justify-between text-base font-bold text-white pt-2 border-t border-ragnar-border">
+            <span id="cartGrandLabel" class="font-syne uppercase">Grand Total</span>
+            <span id="cartGrandTotal" class="font-syne text-ragnar-accent">R0.00</span>
+        </div>
+        <p class="text-[10px] text-ragnar-textMuted leading-relaxed"><strong class="text-white">No payment is taken on this site.</strong> After you send your order we reply on WhatsApp with a secure Yoco card link (or EFT details). Only pay links sent from our WhatsApp number.</p>
+
+        <button type="button" id="proceedCheckoutBtn" class="w-full btn-gold py-4 text-xs tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-ragnar-accent/10">
+            Proceed To Checkout <svg class="ic" viewBox="0 0 448 512" width="0.875em" height="1em" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+        </button>
+    </div>
+</div>
+
+<!-- CHECKOUT MODAL -->
+<div id="checkoutModal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle">
+    <div class="bg-ragnar-card border border-ragnar-border rounded-xl max-w-xl w-full p-6 sm:p-8 relative shadow-2xl my-auto">
+        <button type="button" id="closeCheckoutModal" class="absolute top-4 right-4 text-ragnar-textMuted hover:text-white text-xl" aria-label="Close">
+            <svg class="ic" viewBox="0 0 384 512" width="0.750em" height="1em" aria-hidden="true"><use href="#i-xmark"/></svg>
+        </button>
+
+        <div class="mb-6 border-b border-ragnar-border pb-4">
+            <span class="text-ragnar-accent text-[10px] font-bold uppercase tracking-widest">Final Step</span>
+            <h3 id="checkoutTitle" class="font-syne font-extrabold text-2xl uppercase">Customer &amp; Delivery Details</h3>
+        </div>
+
+        <form id="checkoutForm" class="space-y-4" novalidate autocomplete="on">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="fld-label" for="custName">Full Name</label>
+                    <input type="text" id="custName" placeholder="e.g. Sipho Dlamini" autocomplete="name" class="fld">
+                </div>
+                <div>
+                    <label class="fld-label" for="custPhone">Phone Number (WhatsApp)</label>
+                    <input type="tel" id="custPhone" placeholder="081 234 5678" autocomplete="tel" class="fld">
+                </div>
+            </div>
+
+            <!-- Delivery or collection -->
+            <div class="pt-4 border-t border-ragnar-border">
+                <span class="block text-xs font-bold uppercase tracking-wider text-white mb-3">How Do You Want It?</span>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label class="pick-card">
+                        <input type="radio" name="method" value="Delivery" checked>
+                        <div>
+                            <span class="block text-xs font-bold text-white">Delivery</span>
+                            <span id="deliveryHint" class="text-[10px] text-ragnar-textMuted">To your address</span>
+                        </div>
+                    </label>
+                    <label class="pick-card">
+                        <input type="radio" name="method" value="Collection">
+                        <div>
+                            <span class="block text-xs font-bold text-white">I'll Collect</span>
+                            <span class="text-[10px] text-ragnar-textMuted">No delivery fee</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div id="addressFields" class="space-y-4">
+                <div>
+                    <label class="fld-label" for="custStreet">Street Address</label>
+                    <input type="text" id="custStreet" placeholder="House number and street name" autocomplete="street-address" class="fld">
+                </div>
+                <div>
+                    <label class="fld-label" for="custSuburb">Suburb / Village / Township</label>
+                    <input type="text" id="custSuburb" placeholder="e.g. Ga-Mphahlele" autocomplete="address-level3" class="fld">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="fld-label" for="custCity">City / Town</label>
+                        <input type="text" id="custCity" placeholder="e.g. Polokwane" autocomplete="address-level2" class="fld">
+                    </div>
+                    <div>
+                        <label class="fld-label" for="custPostal">Postal Code</label>
+                        <input type="text" id="custPostal" placeholder="0700" inputmode="numeric" maxlength="4" autocomplete="postal-code" class="fld">
+                    </div>
+                </div>
+                <div>
+                    <label class="fld-label" for="custProvince">Province</label>
+                    <select id="custProvince" autocomplete="address-level1" class="fld">
+                        <option value="">Choose province</option>
+                        <option>Eastern Cape</option><option>Free State</option><option>Gauteng</option>
+                        <option>KwaZulu-Natal</option><option>Limpopo</option><option>Mpumalanga</option>
+                        <option>Northern Cape</option><option>North West</option><option>Western Cape</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="fld-label" for="custNotes">Delivery Notes (optional)</label>
+                    <input type="text" id="custNotes" placeholder="Landmark, gate colour…" class="fld">
+                </div>
+            </div>
+
+            <!-- Payment preference -->
+            <div class="pt-4 border-t border-ragnar-border">
+                <span class="block text-xs font-bold uppercase tracking-wider text-white mb-3">How Would You Like To Pay?</span>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label class="pick-card">
+                        <input type="radio" name="payMethod" value="Yoco card link" checked>
+                        <div>
+                            <span class="block text-xs font-bold text-white">Yoco Card Link</span>
+                            <span class="text-[10px] text-ragnar-textMuted">Visa / Mastercard</span>
+                        </div>
+                    </label>
+                    <label class="pick-card">
+                        <input type="radio" name="payMethod" value="EFT">
+                        <div>
+                            <span class="block text-xs font-bold text-white">EFT</span>
+                            <span class="text-[10px] text-ragnar-textMuted">Bank details sent to you</span>
+                        </div>
+                    </label>
+                </div>
+                <p class="text-[10px] text-ragnar-textMuted mt-3 leading-relaxed">Nothing is paid here. We send your payment link or bank details on WhatsApp once we get your order.</p>
+            </div>
+
+            <p class="text-[10px] text-ragnar-textMuted leading-relaxed">Your details are saved on this device only, so you don't retype them next time. They reach us only inside your WhatsApp order, and are used only to deliver it.</p>
+            <p id="checkoutError" class="text-xs text-red-400 font-bold min-h-[1rem]" role="alert"></p>
+
+            <div class="flex justify-between items-baseline text-sm pt-3 border-t border-ragnar-border">
+                <span id="checkoutTotalLabel" class="font-syne font-bold uppercase text-white">Total</span>
+                <span id="checkoutTotal" class="font-syne font-extrabold text-ragnar-accent text-lg">R0.00</span>
+            </div>
+
+            <button type="submit" class="w-full btn-gold py-4 text-xs tracking-widest shadow-lg shadow-ragnar-accent/20">
+                Send Order On WhatsApp <svg class="ic ml-2" viewBox="0 0 448 512" width="0.875em" height="1em" aria-hidden="true"><use href="#i-whatsapp"/></svg>
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- ORDER SUMMARY MODAL (shown after the WhatsApp message opens) -->
+<div id="receiptModal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="receiptTitle">
+    <div class="bg-ragnar-card border border-ragnar-border rounded-xl max-w-lg w-full p-8 text-center relative shadow-2xl my-auto">
+        <div class="w-16 h-16 bg-ragnar-accent/10 border border-ragnar-accent rounded-full flex items-center justify-center mx-auto mb-4 text-ragnar-accent text-2xl">
+            <svg class="ic" viewBox="0 0 448 512" width="0.875em" height="1em" aria-hidden="true"><use href="#i-check"/></svg>
+        </div>
+        <h3 id="receiptTitle" class="font-syne font-extrabold text-2xl uppercase text-white mb-1">Now Press Send!</h3>
+        <p class="text-xs text-ragnar-textMuted mb-1">Order Reference: <span id="receiptRef" class="text-ragnar-accent font-mono font-bold">#RAG-000000</span></p>
+        <p class="text-xs text-ragnar-textMuted mb-6 leading-relaxed">Your order is only placed once you press <strong class="text-white">Send</strong> in WhatsApp. No payment has been taken. We reply there with your payment link or bank details.</p>
+
+        <div id="receiptDetails" class="bg-ragnar-dark border border-ragnar-border rounded-lg p-4 text-left text-xs space-y-2 mb-6 font-mono text-ragnar-textMuted"></div>
+
+        <div class="flex flex-col gap-3">
+            <a id="receiptRetry" href="#" target="_blank" rel="noopener" class="text-xs text-ragnar-accent hover:underline font-bold">WhatsApp didn't open? Tap here to open it again</a>
+            <button type="button" id="downloadReceiptBtn" class="btn-ghost text-xs py-3">
+                <svg class="ic mr-2" viewBox="0 0 512 512" width="1.000em" height="1em" aria-hidden="true"><use href="#i-print"/></svg> Print / Save Summary
+            </button>
+            <button type="button" id="closeReceiptBtn" class="btn-gold text-xs py-3">
+                Back To Storefront
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification Container -->
+<div id="toastContainer" class="fixed bottom-6 right-6 left-6 sm:left-auto z-[60] flex flex-col items-end gap-2 pointer-events-none" aria-live="polite"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>

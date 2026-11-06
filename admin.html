@@ -1,212 +1,359 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ragnar — Owner Panel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0a0a0a">
+<title>Ragnar Clothing — Owner Panel</title>
 <link rel="icon" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
-<body>
-<div class="admin-head wrap"><h2 style="font-size:18px;text-transform:uppercase;">Ragnar — Owner Panel</h2><a href="index.html" class="btn">View store</a></div>
+<body class="antialiased selection:bg-ragnar-accent selection:text-black">
 
-<div class="admin-shell" id="login-view">
-  <h2 style="margin-bottom:14px;">Sign in</h2>
-  <form class="admin-form" id="login-form">
-    <input type="email" id="login-email" placeholder="Email" required>
-    <input type="password" id="login-password" placeholder="Password" required>
-    <button type="submit" class="btn btn-primary" style="justify-content:center;">Sign in</button>
-  </form>
-  <p class="status-note" id="login-status"></p>
+<!-- Header (same glass header as the store) -->
+<header class="sticky top-0 z-40 glass-nav border-b border-ragnar-border">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        <a href="index.html" class="basis-1/3 text-xs font-bold uppercase tracking-widest hover:text-ragnar-accent transition">&larr; <span class="hidden sm:inline">View </span>store</a>
+        <div class="text-center">
+            <span class="font-syne font-extrabold text-2xl sm:text-3xl tracking-tighter block text-white">RAGNAR<span class="text-ragnar-accent">.</span></span>
+            <span class="text-[9px] tracking-[0.3em] text-ragnar-textMuted uppercase block -mt-1 font-bold">Owner Panel</span>
+        </div>
+        <div class="basis-1/3 flex justify-end">
+            <button type="button" id="logout-btn" hidden class="adm-small">Sign out</button>
+        </div>
+    </div>
+</header>
+
+<!-- Sign in -->
+<div class="max-w-md mx-auto px-4 py-16" id="login-view">
+    <div class="adm-card">
+        <span class="adm-eyebrow">Owner Panel</span>
+        <h2 class="adm-title mb-6">Sign in</h2>
+        <form class="adm-grid" id="login-form">
+            <div><label class="fld-label" for="login-email">Email</label><input type="email" id="login-email" placeholder="Email" required autocomplete="username" class="fld"></div>
+            <div><label class="fld-label" for="login-password">Password</label><input type="password" id="login-password" placeholder="Password" required autocomplete="current-password" class="fld"></div>
+            <button type="submit" class="btn-gold py-3 text-xs">Sign in</button>
+        </form>
+        <p class="adm-status mt-3" id="login-status"></p>
+    </div>
 </div>
-
-<div class="admin-shell" id="panel-view" style="display:none;max-width:700px;">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-    <h2>Manage store</h2>
-    <button class="btn" id="logout-btn">Sign out</button>
+<!-- Panel -->
+<div class="max-w-4xl mx-auto px-4 sm:px-6 py-10" id="panel-view" style="display:none;">
+  <div class="mb-8">
+    <span class="adm-eyebrow">Owner Panel</span>
+    <h2 class="font-syne text-3xl sm:text-4xl font-extrabold uppercase">Manage store</h2>
   </div>
 
-  <div class="conn-box" id="conn-box" role="status" hidden>
+  <div class="adm-conn" id="conn-box" role="status" hidden>
     <p id="conn-text"></p>
     <div id="conn-uid-row" hidden>
-      <code class="conn-uid" id="conn-uid"></code>
-      <div class="row-actions">
-        <button type="button" class="del-btn" id="conn-copy">Copy UID</button>
-        <button type="button" class="del-btn" id="conn-retry">Check again</button>
+      <code class="adm-uid" id="conn-uid"></code>
+      <div class="row-actions flex flex-wrap gap-2">
+        <button type="button" class="adm-small" id="conn-copy">Copy UID</button>
+        <button type="button" class="adm-small" id="conn-retry">Check again</button>
       </div>
     </div>
   </div>
 
-  <div class="admin-tabs">
-    <button type="button" class="admin-tab active" data-tab="products">Products</button>
-    <button type="button" class="admin-tab" data-tab="notices">Notices</button>
-    <button type="button" class="admin-tab" data-tab="categories">Categories</button>
-    <button type="button" class="admin-tab" data-tab="info">Store info</button>
+  <div class="flex items-center gap-2 overflow-x-auto pb-2 mb-8 scrollbar-none" role="tablist">
+    <button type="button" class="adm-tab active" data-tab="products">Products</button>
+    <button type="button" class="adm-tab" data-tab="home">Homepage</button>
+    <button type="button" class="adm-tab" data-tab="notices">Notices</button>
+    <button type="button" class="adm-tab" data-tab="categories">Categories</button>
+    <button type="button" class="adm-tab" data-tab="info">Store info</button>
   </div>
 
+<!-- ============ PRODUCTS ============ -->
 <div id="tab-products">
-  <form class="admin-form" id="product-form">
-    <h3 id="form-title">Add a new item</h3>
-    <div class="admin-row">
-      <input type="text" id="p-name" placeholder="Item name" required>
-      <select id="p-category" required>
-        <option value="">Category</option>
-      </select>
+  <form class="adm-card" id="product-form">
+    <div class="adm-grid">
+    <div>
+      <span class="adm-eyebrow">Catalog</span>
+      <h3 class="adm-title" id="form-title">Add a new item</h3>
     </div>
-    <div class="admin-row">
-      <input type="number" id="p-price" placeholder="Price (R)" min="0" required>
-      <input type="text" id="p-note" placeholder="Note (optional, e.g. winter drop)">
+    <div class="adm-row">
+      <div><label class="fld-label" for="p-name">Item name</label><input type="text" id="p-name" placeholder="Item name" required class="fld"></div>
+      <div><label class="fld-label" for="p-category">Category</label>
+        <select id="p-category" required class="fld"><option value="">Category</option></select></div>
+    </div>
+    <div class="adm-row">
+      <div><label class="fld-label" for="p-price">Base price (R)</label><input type="number" id="p-price" placeholder="Price (R)" min="0" required class="fld"></div>
+      <div><label class="fld-label" for="p-note">Note (optional)</label><input type="text" id="p-note" placeholder="e.g. winter drop" class="fld"></div>
+    </div>
+    <div>
+      <label class="fld-label" for="p-desc">Description (optional)</label>
+      <textarea id="p-desc" maxlength="600" rows="3" placeholder="Fabric, fit, print — what a customer sees in the quick view" class="fld"></textarea>
     </div>
 
-    <div class="admin-label">Product photo</div>
-    <div class="photo-box">
-      <img id="p-photo-preview" class="photo-preview" alt="Photo preview" hidden>
-      <div class="photo-actions">
-        <label class="btn photo-pick">Choose photo<input type="file" id="p-photo" accept="image/*" hidden></label>
-        <button type="button" class="del-btn" id="p-photo-remove" hidden>Remove photo</button>
+    <div>
+      <div class="fld-label">Product photo</div>
+      <div class="adm-photo">
+        <img id="p-photo-preview" class="adm-preview" alt="Photo preview" hidden>
+        <div class="adm-photo-actions">
+          <label class="adm-small cursor-pointer">Choose photo<input type="file" id="p-photo" accept="image/*" hidden></label>
+          <button type="button" class="adm-small" id="p-photo-remove" hidden>Remove photo</button>
+        </div>
       </div>
+      <p class="adm-hint mt-2">Take one now or pick from your gallery. It's shrunk automatically so the store stays quick on data. Press Save afterwards to publish it.</p>
     </div>
-    <p class="admin-hint">Take one now or pick from your gallery. It's shrunk automatically so the store stays quick on data. Press Save afterwards to publish it.</p>
 
-    <div class="admin-label">Who is it for?</div>
-    <div class="size-checks" id="audience-checks">
-      <label><input type="checkbox" value="Men"> Men</label>
-      <label><input type="checkbox" value="Women"> Women</label>
-      <label><input type="checkbox" value="Teens"> Teens (13-17)</label>
-      <label><input type="checkbox" value="Kids"> Kids (under 13)</label>
+    <div>
+      <div class="fld-label">Who is it for?</div>
+      <div class="adm-checks" id="audience-checks">
+        <label><input type="checkbox" value="Men"> Men</label>
+        <label><input type="checkbox" value="Women"> Women</label>
+        <label><input type="checkbox" value="Teens"> Teens (13-17)</label>
+        <label><input type="checkbox" value="Kids"> Kids (under 13)</label>
+      </div>
+      <p class="adm-hint mt-2">Tick every group it suits. Unisex = tick Men and Women. Shoppers can filter by this on the store.</p>
     </div>
-    <p class="admin-hint">Tick every group it suits. Unisex = tick Men and Women. Shoppers pick this first, then the type.</p>
 
-    <div class="admin-label">Sizes available</div>
-    <div class="size-checks" id="size-checks">
-      <label><input type="checkbox" value="XS"> XS</label>
-      <label><input type="checkbox" value="S" checked> S</label>
-      <label><input type="checkbox" value="M" checked> M</label>
-      <label><input type="checkbox" value="L" checked> L</label>
-      <label><input type="checkbox" value="XL" checked> XL</label>
-      <label><input type="checkbox" value="XXL"> XXL</label>
-      <label><input type="checkbox" value="One size" id="size-one"> One size</label>
-      <span class="size-group-label">Kids &amp; teen age sizes</span>
-      <label><input type="checkbox" value="3-4 yrs"> 3-4 yrs</label>
-      <label><input type="checkbox" value="5-6 yrs"> 5-6 yrs</label>
-      <label><input type="checkbox" value="7-8 yrs"> 7-8 yrs</label>
-      <label><input type="checkbox" value="9-10 yrs"> 9-10 yrs</label>
-      <label><input type="checkbox" value="11-12 yrs"> 11-12 yrs</label>
-      <label><input type="checkbox" value="13-14 yrs"> 13-14 yrs</label>
-      <label><input type="checkbox" value="15-16 yrs"> 15-16 yrs</label>
+    <div>
+      <div class="fld-label">Sizes available</div>
+      <div class="adm-checks" id="size-checks">
+        <label><input type="checkbox" value="XS"> XS</label>
+        <label><input type="checkbox" value="S" checked> S</label>
+        <label><input type="checkbox" value="M" checked> M</label>
+        <label><input type="checkbox" value="L" checked> L</label>
+        <label><input type="checkbox" value="XL" checked> XL</label>
+        <label><input type="checkbox" value="XXL"> XXL</label>
+        <label><input type="checkbox" value="One size" id="size-one"> One size</label>
+        <span class="adm-group">Kids &amp; teen age sizes</span>
+        <label><input type="checkbox" value="3-4 yrs"> 3-4 yrs</label>
+        <label><input type="checkbox" value="5-6 yrs"> 5-6 yrs</label>
+        <label><input type="checkbox" value="7-8 yrs"> 7-8 yrs</label>
+        <label><input type="checkbox" value="9-10 yrs"> 9-10 yrs</label>
+        <label><input type="checkbox" value="11-12 yrs"> 11-12 yrs</label>
+        <label><input type="checkbox" value="13-14 yrs"> 13-14 yrs</label>
+        <label><input type="checkbox" value="15-16 yrs"> 15-16 yrs</label>
+      </div>
+      <input type="text" id="p-other-sizes" placeholder="Other sizes, separated by commas (e.g. 3XL, 2-3 yrs)" class="fld mt-3">
     </div>
-    <input type="text" id="p-other-sizes" placeholder="Other sizes, separated by commas (e.g. 3XL, 2-3 yrs)">
 
     <div id="extras-block" hidden>
-      <div class="admin-label">Extra price for some sizes (optional)</div>
-      <p class="admin-hint">The price above is the base price. If a bigger size costs more, type how many rands extra. Leave it empty for no extra.</p>
-      <div class="extra-list" id="size-extras"></div>
+      <div class="fld-label">Extra price for some sizes (optional)</div>
+      <p class="adm-hint mb-3">The price above is the base price. If a bigger size costs more, type how many rands extra. Leave it empty for no extra.</p>
+      <div class="grid gap-2" id="size-extras"></div>
     </div>
 
-    <div class="admin-label">Colours (optional)</div>
-    <p class="admin-hint">Add a colour when customers must choose one. Each colour can have its own photo, its own extra price, and can be sold out on its own. Leave this empty if the item comes in one colour.</p>
-    <div class="color-list" id="color-list"></div>
-    <div class="starter-row"><button type="button" class="del-btn" id="color-add">Add a colour</button></div>
-
-    <label class="check-line"><input type="checkbox" id="p-soldout"> Mark as sold out</label>
-
-    <div class="admin-btn-row">
-      <button type="submit" class="btn btn-primary" id="save-btn">Publish to store</button>
-      <button type="button" class="btn" id="cancel-btn" style="display:none;">Cancel</button>
+    <div>
+      <div class="fld-label">Colours (optional)</div>
+      <p class="adm-hint mb-3">Add a colour when customers must choose one. Each colour can have its own photo, its own extra price, and can be sold out on its own. Leave this empty if the item comes in one colour.</p>
+      <div class="grid gap-3" id="color-list"></div>
+      <div class="mt-3"><button type="button" class="adm-small" id="color-add">Add a colour</button></div>
     </div>
-    <p class="admin-hint">Publishing is instant. There is no separate publish step: the item is on the store the moment this page says <strong>Saved</strong>. If it says anything else, it is NOT live.</p>
-    <p class="status-note" id="admin-status"></p>
+
+    <div class="adm-checks">
+      <label class="adm-check"><input type="checkbox" id="p-new"> Show the gold "New Drop" badge</label>
+      <label class="adm-check"><input type="checkbox" id="p-soldout"> Mark as sold out</label>
+    </div>
+
+    <div class="adm-btnrow">
+      <button type="submit" class="btn-gold py-3 text-xs" id="save-btn">Publish to store</button>
+      <button type="button" class="btn-ghost py-3 text-xs" id="cancel-btn" style="display:none;">Cancel</button>
+    </div>
+    <p class="adm-hint">Publishing is instant. There is no separate publish step: the item is on the store the moment this page says <strong class="text-white">Saved</strong>. If it says anything else, it is NOT live.</p>
+    <p class="adm-status" id="admin-status"></p>
+    </div>
   </form>
 
-  <table class="admin-table" id="admin-table">
-    <thead><tr><th>Item</th><th>Price</th><th>Sizes</th><th></th></tr></thead>
-    <tbody id="admin-table-body"></tbody>
-  </table>
+  <div class="adm-card mt-6 overflow-x-auto">
+    <table class="adm-table" id="admin-table">
+      <thead><tr><th>Item</th><th>Price</th><th>Sizes</th><th></th></tr></thead>
+      <tbody id="admin-table-body"></tbody>
+    </table>
+  </div>
 </div>
 
+<!-- ============ HOMEPAGE ============ -->
+<div id="tab-home" hidden>
+  <form class="adm-card" id="hero-form">
+    <div class="adm-grid">
+      <div>
+        <span class="adm-eyebrow">Top of the store</span>
+        <h3 class="adm-title">Hero photo</h3>
+      </div>
+      <div class="adm-photo">
+        <img id="hero-preview" class="adm-preview wide" alt="Hero photo preview" hidden>
+        <p id="hero-none" class="adm-hint w-[168px]">No photo yet. The store shows a dark background with the Ragnar emblem.</p>
+        <div class="adm-photo-actions">
+          <label class="adm-small cursor-pointer">Choose photo<input type="file" id="hero-file" accept="image/*" hidden></label>
+          <button type="button" class="adm-small" id="hero-remove" hidden>Remove photo</button>
+        </div>
+      </div>
+      <p class="adm-hint">A wide photo works best (your own clothing, a lookbook shot). The store darkens it and turns it black-and-white behind the headline. It's shrunk automatically. Press Publish photo afterwards.</p>
+      <button type="submit" class="btn-gold py-3 text-xs" id="hero-save">Publish photo</button>
+      <p class="adm-status" id="hero-status"></p>
+    </div>
+  </form>
+
+  <form class="adm-card mt-6" id="home-form" novalidate>
+    <div class="adm-grid">
+      <div>
+        <span class="adm-eyebrow">Wording</span>
+        <h3 class="adm-title">Homepage</h3>
+        <p class="adm-hint mt-2">Leave a box empty to use the store's built-in wording. Only write things that are true. Text with [brackets] or ____ blanks is refused so unfinished wording can never go public.</p>
+      </div>
+
+      <h4 class="adm-sub">Gold bar at the very top</h4>
+      <input type="text" id="h-announce" maxlength="120" placeholder="e.g. Order on WhatsApp | Secure Yoco card link or EFT" aria-label="Announcement bar text" class="fld">
+      <label class="adm-check"><input type="checkbox" id="h-announce-hide"> Hide the gold bar</label>
+
+      <h4 class="adm-sub">Hero</h4>
+      <input type="text" id="h-badge" maxlength="60" placeholder="Small badge, e.g. Official Drop 01 // Limited" aria-label="Hero badge" class="fld">
+      <div class="adm-row">
+        <input type="text" id="h-title" maxlength="30" placeholder="Big title, white part (RAGNAR)" aria-label="Hero title" class="fld">
+        <input type="text" id="h-accent" maxlength="30" placeholder="Big title, gold part (CLOTHING)" aria-label="Hero title, gold part" class="fld">
+      </div>
+      <textarea id="h-text" maxlength="240" rows="3" placeholder="One or two lines under the title" aria-label="Hero text" class="fld"></textarea>
+      <div>
+        <label class="fld-label" for="h-drop">Next drop date and time (optional)</label>
+        <div class="flex gap-2">
+          <input type="datetime-local" id="h-drop" class="fld min-w-0">
+          <button type="button" class="adm-small shrink-0" id="h-drop-clear">Clear</button>
+        </div>
+        <p class="adm-hint mt-2">The 4-box countdown on the store only appears while a drop date in the future is set. It counts down to this exact moment on your phone's clock (South African time), then disappears. Leave it empty if there is no drop planned. Never set a date you don't intend to keep.</p>
+      </div>
+
+      <h4 class="adm-sub">Brand section ("Designed For The Bold.")</h4>
+      <input type="text" id="h-about-title" maxlength="60" placeholder="Section title" aria-label="Brand section title" class="fld">
+      <textarea id="h-about-text" maxlength="400" rows="3" placeholder="A few lines about the brand" aria-label="Brand section text" class="fld"></textarea>
+      <div class="adm-color"><span class="adm-eyebrow !mb-0">Card 1</span>
+        <input type="text" id="h-f1t" maxlength="40" placeholder="Card title" aria-label="Card 1 title" class="fld">
+        <textarea id="h-f1x" maxlength="200" rows="2" placeholder="Card text" aria-label="Card 1 text" class="fld"></textarea></div>
+      <div class="adm-color"><span class="adm-eyebrow !mb-0">Card 2</span>
+        <input type="text" id="h-f2t" maxlength="40" placeholder="Card title" aria-label="Card 2 title" class="fld">
+        <textarea id="h-f2x" maxlength="200" rows="2" placeholder="Card text" aria-label="Card 2 text" class="fld"></textarea></div>
+      <div class="adm-color"><span class="adm-eyebrow !mb-0">Card 3</span>
+        <input type="text" id="h-f3t" maxlength="40" placeholder="Card title" aria-label="Card 3 title" class="fld">
+        <textarea id="h-f3x" maxlength="200" rows="2" placeholder="Card text" aria-label="Card 3 text" class="fld"></textarea></div>
+      <p class="adm-hint">Don't claim things you can't back up (fabric weight, delivery times, "free delivery over R…") unless they are true and you will honour them: South Africa's Consumer Protection Act holds you to what your site says.</p>
+
+      <h4 class="adm-sub">Social links (footer icons)</h4>
+      <input type="url" id="h-ig" maxlength="200" placeholder="https://www.instagram.com/yourpage" aria-label="Instagram link" class="fld">
+      <input type="url" id="h-tt" maxlength="200" placeholder="https://www.tiktok.com/@yourpage" aria-label="TikTok link" class="fld">
+      <p class="adm-hint">An icon only shows once you paste a real link. The WhatsApp icon is always there.</p>
+
+      <button type="submit" class="btn-gold py-3 text-xs" id="home-save">Publish homepage</button>
+      <p class="adm-hint">It is live the moment this page says <strong class="text-white">Saved</strong>. Anything else means it is NOT live.</p>
+      <p class="adm-status" id="home-status"></p>
+    </div>
+  </form>
+</div>
+
+<!-- ============ NOTICES ============ -->
 <div id="tab-notices" hidden>
-  <form class="admin-form" id="notice-form">
-    <h3>Post a notice</h3>
-    <p class="admin-hint">Shows on the store's Notices page. "Important" notices also appear as a banner across the top until a visitor dismisses it.</p>
-    <input type="text" id="n-title" placeholder="Title (e.g. Next drop delayed)" maxlength="80" required>
-    <textarea id="n-message" placeholder="Message — say what's happening and when customers can expect an update" maxlength="1000" required></textarea>
-    <div class="admin-row">
-      <select id="n-level">
+  <form class="adm-card" id="notice-form">
+    <div class="adm-grid">
+    <div>
+      <span class="adm-eyebrow">Updates</span>
+      <h3 class="adm-title">Post a notice</h3>
+      <p class="adm-hint mt-2">Shows on the store's Notices page. "Important" notices also appear as a gold banner across the top until a visitor dismisses it.</p>
+    </div>
+    <input type="text" id="n-title" placeholder="Title (e.g. Next drop delayed)" maxlength="80" required aria-label="Notice title" class="fld">
+    <textarea id="n-message" placeholder="Message — say what's happening and when customers can expect an update" maxlength="1000" required aria-label="Notice message" rows="4" class="fld"></textarea>
+    <div class="adm-row">
+      <select id="n-level" aria-label="Notice type" class="fld">
         <option value="important">Important (banner + page)</option>
         <option value="info">Update (page only)</option>
       </select>
-      <input type="date" id="n-expires" aria-label="Hide after this date (optional)">
+      <input type="date" id="n-expires" aria-label="Hide after this date (optional)" class="fld">
     </div>
-    <p class="admin-hint">The date is optional: the notice hides itself after it, so old news doesn't stay up.</p>
-    <button type="submit" class="btn btn-primary" id="n-post">Post notice</button>
-    <p class="status-note" id="notice-status"></p>
+    <p class="adm-hint">The date is optional: the notice hides itself after it, so old news doesn't stay up.</p>
+    <button type="submit" class="btn-gold py-3 text-xs" id="n-post">Post notice</button>
+    <p class="adm-status" id="notice-status"></p>
+    </div>
   </form>
 
-  <table class="admin-table" id="notice-table">
-    <thead><tr><th>Notice</th><th>Status</th><th></th></tr></thead>
-    <tbody id="notice-table-body"></tbody>
-  </table>
+  <div class="adm-card mt-6 overflow-x-auto">
+    <table class="adm-table" id="notice-table">
+      <thead><tr><th>Notice</th><th>Status</th><th></th></tr></thead>
+      <tbody id="notice-table-body"></tbody>
+    </table>
+  </div>
 
-  <hr class="admin-divider">
-
-  <form class="admin-form" id="community-form">
-    <h3>WhatsApp community link</h3>
-    <p class="admin-hint">In WhatsApp: open your community, tap its name, then choose the invite link option and copy it. Paste it here and a "Join our WhatsApp community" button appears on the Notices page and in the footer. Leave it empty to remove the button.</p>
-    <input type="url" id="c-link" placeholder="https://chat.whatsapp.com/...">
-    <button type="submit" class="btn btn-primary">Save link</button>
-    <p class="status-note" id="community-status"></p>
+  <form class="adm-card mt-6" id="community-form">
+    <div class="adm-grid">
+    <div>
+      <span class="adm-eyebrow">Community</span>
+      <h3 class="adm-title">WhatsApp community link</h3>
+      <p class="adm-hint mt-2">In WhatsApp: open your community, tap its name, then choose the invite link option and copy it. Paste it here and a "Join our WhatsApp community" button appears on the Notices page and in the footer. Leave it empty to remove the button.</p>
+    </div>
+    <input type="url" id="c-link" placeholder="https://chat.whatsapp.com/..." aria-label="WhatsApp community link" class="fld">
+    <button type="submit" class="btn-gold py-3 text-xs">Save link</button>
+    <p class="adm-status" id="community-status"></p>
+    </div>
   </form>
 </div>
 
+<!-- ============ CATEGORIES ============ -->
 <div id="tab-categories" hidden>
-  <form class="admin-form" id="category-form">
-    <h3>Add a category</h3>
-    <p class="admin-hint">These are the types shoppers browse inside Men, Women, Teens and Kids (Hoodies, Sweaters&hellip;). A type only appears on the store once an item uses it, so you can add next season's types ahead of time.</p>
-    <div class="admin-row">
-      <input type="text" id="cat-name" maxlength="30" placeholder="e.g. T-shirts" aria-label="New category name">
-      <button type="submit" class="btn btn-primary" style="justify-content:center;">Add</button>
+  <form class="adm-card" id="category-form">
+    <div class="adm-grid">
+    <div>
+      <span class="adm-eyebrow">Filters</span>
+      <h3 class="adm-title">Add a category</h3>
+      <p class="adm-hint mt-2">These are the pills shoppers filter by (Hoodies, Sweaters&hellip;). A pill only appears on the store once an item uses it, so you can add next season's types ahead of time.</p>
     </div>
-    <p class="status-note" id="category-status"></p>
+    <div class="flex gap-3">
+      <input type="text" id="cat-name" maxlength="30" placeholder="e.g. T-shirts" aria-label="New category name" class="fld">
+      <button type="submit" class="btn-gold px-8 text-xs">Add</button>
+    </div>
+    <p class="adm-status" id="category-status"></p>
+    </div>
   </form>
 
-  <table class="admin-table" id="category-table">
-    <thead><tr><th>Category</th><th>Items</th><th></th></tr></thead>
-    <tbody id="category-table-body"></tbody>
-  </table>
-  <p class="admin-hint" style="margin-top:12px;">Rename changes the name on every item that uses it. Remove is only allowed once no item uses the category. Use the arrows to set the order shoppers see.</p>
+  <div class="adm-card mt-6 overflow-x-auto">
+    <table class="adm-table" id="category-table">
+      <thead><tr><th>Category</th><th>Items</th><th></th></tr></thead>
+      <tbody id="category-table-body"></tbody>
+    </table>
+    <p class="adm-hint mt-4">Rename changes the name on every item that uses it. Remove is only allowed once no item uses the category. Use the arrows to set the order shoppers see.</p>
+  </div>
 </div>
 
+<!-- ============ STORE INFO ============ -->
 <div id="tab-info" hidden>
-  <form class="admin-form" id="info-form" novalidate>
-    <h3>Delivery</h3>
-    <p class="admin-hint">The fee is added to the bag total, so customers see the real price before they message you. Leave it empty if it varies: the bag then says "to be confirmed" and you tell them in WhatsApp.</p>
-    <input type="number" id="i-fee" placeholder="Delivery fee in rands, e.g. 60 (0 = free)" min="0" max="10000" step="1" inputmode="numeric">
-    <textarea id="i-delivery" maxlength="600" placeholder="e.g. We dispatch within 3 working days of payment. Courier delivery takes 2-5 working days. Pre-order items ship on the date shown on the item."></textarea>
-
-    <h3>Returns &amp; refunds</h3>
-    <textarea class="tall" id="i-returns" maxlength="2000" placeholder="What customers can return, for how long, who pays for the return, and how refunds are made"></textarea>
-    <div class="starter-row"><button type="button" class="del-btn" id="i-returns-starter">Use starter wording</button></div>
-    <p class="admin-hint">Starter wording follows South Africa's rules for online sales (ECTA s44: 7 days to cancel, refund within 30 days; made-to-order items are excluded). It is a starting point, not legal advice. Edit it so it is true for your business and have it checked.</p>
-
-    <h3>Contact</h3>
-    <p class="admin-hint">South African online-trading law (ECTA s43) expects a shop website to show who is selling and how to reach them. Fill in what applies to you.</p>
-    <input type="text" id="i-name" maxlength="80" placeholder="Business name">
-    <input type="text" id="i-address" maxlength="200" placeholder="Physical address (street, town, province)">
-    <div class="admin-row">
-      <input type="tel" id="i-phone" maxlength="30" placeholder="Phone / WhatsApp number">
-      <input type="email" id="i-email" maxlength="100" placeholder="Email">
+  <form class="adm-card" id="info-form" novalidate>
+    <div class="adm-grid">
+    <div>
+      <span class="adm-eyebrow">Delivery, returns, contact</span>
+      <h3 class="adm-title">Store info</h3>
     </div>
-    <input type="text" id="i-reg" maxlength="40" placeholder="Registration number (only if you have one)">
 
-    <h3>Privacy</h3>
-    <textarea class="tall" id="i-privacy" maxlength="2000" placeholder="How you handle customers' details"></textarea>
-    <div class="starter-row"><button type="button" class="del-btn" id="i-privacy-starter">Use starter wording</button></div>
-    <p class="admin-hint">Starter wording describes how this site really works: it stores no customer details, and delivery details stay on the customer's phone and reach you by WhatsApp. Change it if you do anything more with customers' details.</p>
+    <h4 class="adm-sub">Delivery</h4>
+    <p class="adm-hint">The fee is added to the bag total, so customers see the real price before they message you. Leave it empty if it varies: the bag then says "to be confirmed" and you tell them in WhatsApp.</p>
+    <input type="number" id="i-fee" placeholder="Delivery fee in rands, e.g. 60 (0 = free)" min="0" max="10000" step="1" inputmode="numeric" aria-label="Delivery fee" class="fld">
+    <textarea id="i-delivery" maxlength="600" rows="4" aria-label="Delivery details" placeholder="e.g. We dispatch within 3 working days of payment. Courier delivery takes 2-5 working days. Pre-order items ship on the date shown on the item." class="fld"></textarea>
 
-    <button type="submit" class="btn btn-primary" id="i-save">Publish store info</button>
-    <p class="admin-hint">It is live the moment this page says <strong>Saved</strong>. Anything else means it is NOT live. Text with [brackets] or ____ blanks is refused so unfinished wording can never go public.</p>
-    <p class="status-note" id="info-status"></p>
+    <h4 class="adm-sub">Returns &amp; refunds</h4>
+    <textarea id="i-returns" maxlength="2000" rows="8" aria-label="Returns and refunds" placeholder="What customers can return, for how long, who pays for the return, and how refunds are made" class="fld"></textarea>
+    <div><button type="button" class="adm-small" id="i-returns-starter">Use starter wording</button></div>
+    <p class="adm-hint">Starter wording follows South Africa's rules for online sales (ECTA s44: 7 days to cancel, refund within 30 days; made-to-order items are excluded). It is a starting point, not legal advice. Edit it so it is true for your business and have it checked.</p>
+
+    <h4 class="adm-sub">Contact</h4>
+    <p class="adm-hint">South African online-trading law (ECTA s43) expects a shop website to show who is selling and how to reach them. Fill in what applies to you.</p>
+    <input type="text" id="i-name" maxlength="80" placeholder="Business name" aria-label="Business name" class="fld">
+    <input type="text" id="i-address" maxlength="200" placeholder="Physical address (street, town, province)" aria-label="Physical address" class="fld">
+    <div class="adm-row">
+      <input type="tel" id="i-phone" maxlength="30" placeholder="Phone / WhatsApp number" aria-label="Phone" class="fld">
+      <input type="email" id="i-email" maxlength="100" placeholder="Email" aria-label="Email" class="fld">
+    </div>
+    <input type="text" id="i-reg" maxlength="40" placeholder="Registration number (only if you have one)" aria-label="Registration number" class="fld">
+
+    <h4 class="adm-sub">Privacy</h4>
+    <textarea id="i-privacy" maxlength="2000" rows="8" aria-label="Privacy" placeholder="How you handle customers' details" class="fld"></textarea>
+    <div><button type="button" class="adm-small" id="i-privacy-starter">Use starter wording</button></div>
+    <p class="adm-hint">Starter wording describes how this site really works: it stores no customer details, and delivery details stay on the customer's phone and reach you by WhatsApp. Change it if you do anything more with customers' details.</p>
+
+    <button type="submit" class="btn-gold py-3 text-xs" id="i-save">Publish store info</button>
+    <p class="adm-hint">It is live the moment this page says <strong class="text-white">Saved</strong>. Anything else means it is NOT live. Text with [brackets] or ____ blanks is refused so unfinished wording can never go public.</p>
+    <p class="adm-status" id="info-status"></p>
+    </div>
   </form>
 </div>
 </div>
@@ -223,7 +370,7 @@ let productsById = {};
 const DEFAULT_CATEGORIES = ["Hoodies", "Sweaters", "Tracksuits", "Hats"];
 let categories = DEFAULT_CATEGORIES.slice();
 
-function fmtR(n){return "R"+Number(n).toLocaleString("en-ZA");}
+function fmtR(n){const v=Math.round(Number(n)*100)/100,p=v.toFixed(2).split(".");return "R"+p[0].replace(/\B(?=(\d{3})+(?!\d))/g,",")+"."+p[1];}
 const statusTimers = {};
 function setStatus(id, msg, opts) {
   const el = document.getElementById(id), o = opts || {};
@@ -402,6 +549,132 @@ $("info-form").addEventListener("submit", async (e) => {
   }
 });
 
+// ---------- Homepage: wording, drop date and social links (settings/site) + the hero photo (settings/hero) ----------
+const HOME_FIELDS = {   // input id -> [settings key, label, max length]
+  "h-announce": ["announcement", "Gold bar text", 120],
+  "h-badge": ["heroBadge", "Hero badge", 60],
+  "h-title": ["heroTitle", "Hero title", 30],
+  "h-accent": ["heroAccent", "Hero title (gold part)", 30],
+  "h-text": ["heroText", "Hero text", 240],
+  "h-about-title": ["aboutTitle", "Brand section title", 60],
+  "h-about-text": ["aboutText", "Brand section text", 400],
+  "h-f1t": ["f1Title", "Card 1 title", 40], "h-f1x": ["f1Text", "Card 1 text", 200],
+  "h-f2t": ["f2Title", "Card 2 title", 40], "h-f2x": ["f2Text", "Card 2 text", 200],
+  "h-f3t": ["f3Title", "Card 3 title", 40], "h-f3x": ["f3Text", "Card 3 text", 200],
+  "h-ig": ["instagramUrl", "Instagram link", 200],
+  "h-tt": ["tiktokUrl", "TikTok link", 200]
+};
+const SOCIAL_HOSTS = { "h-ig": ["instagram.com", "www.instagram.com"], "h-tt": ["tiktok.com", "www.tiktok.com", "vm.tiktok.com"] };
+let homeDirty = false, homeSaving = false;
+const pad2 = (n) => String(n).padStart(2, "0");
+function toLocalInput(ms) { const d = new Date(ms); return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()) + "T" + pad2(d.getHours()) + ":" + pad2(d.getMinutes()); }
+function fillHomeForm(data) {
+  if (homeDirty) return;                 // never overwrite what the owner is in the middle of typing
+  Object.keys(HOME_FIELDS).forEach(id => { const v = data[HOME_FIELDS[id][0]]; $(id).value = typeof v === "string" ? v : ""; });
+  $("h-announce-hide").checked = data.announcementHidden === true;
+  // A date that has already passed is shown empty, so the next save clears it instead of being blocked by it.
+  $("h-drop").value = typeof data.dropDate === "number" && Number.isFinite(data.dropDate) && data.dropDate > Date.now() ? toLocalInput(data.dropDate) : "";
+}
+function safeSocial(url, hosts) {
+  try { const u = new URL(url); return u.protocol === "https:" && hosts.includes(u.hostname) ? u.href : ""; } catch (e) { return ""; }
+}
+function collectHome() {
+  const data = {};
+  for (const id of Object.keys(HOME_FIELDS)) {
+    const [key, label, max] = HOME_FIELDS[id];
+    const value = $(id).value.trim();
+    if (value.length > max) return { error: label + " is too long (" + max + " characters at most).", focus: id };
+    if (hasPlaceholder(value)) return { error: label + " still has a [bracketed] or ____ blank in it. Replace it with your real wording or remove it.", focus: id };
+    if (value && SOCIAL_HOSTS[id] && !safeSocial(value, SOCIAL_HOSTS[id])) return { error: label + " doesn't look right. Paste the full link, starting with https://", focus: id };
+    data[key] = value;
+  }
+  data.announcementHidden = $("h-announce-hide").checked;
+  const dv = $("h-drop").value;
+  if (!dv) data.dropDate = null;
+  else {
+    const t = new Date(dv).getTime();
+    if (!Number.isFinite(t)) return { error: "That drop date isn't readable. Pick it again, or press Clear.", focus: "h-drop" };
+    if (t <= Date.now()) return { error: "That drop date has already passed. Pick a date in the future, or press Clear.", focus: "h-drop" };
+    data.dropDate = t;
+  }
+  return { data };
+}
+$("home-form").addEventListener("input", () => { homeDirty = true; });
+$("h-drop-clear").addEventListener("click", () => { $("h-drop").value = ""; homeDirty = true; });
+$("home-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (homeSaving) return;
+  const r = collectHome();
+  if (r.error) { setStatus("home-status", r.error, { sticky: true, error: true }); if (r.focus) $(r.focus).focus(); return; }
+  homeSaving = true;
+  $("home-save").disabled = true;
+  setStatus("home-status", "Saving… it is not live until this says Saved.", { sticky: true });
+  const slow = setTimeout(() => setStatus("home-status", "Still saving… check your internet. It is NOT live yet.", { sticky: true }), 10000);
+  try {
+    await db.doc("settings/site").set(r.data, { merge: true });
+    clearTimeout(slow);
+    homeDirty = false;
+    setStatus("home-status", "Saved. It's live on the store now.", { ms: 8000 });
+  } catch (err) {
+    clearTimeout(slow);
+    setStatus("home-status", explainError(err), { sticky: true, error: true });
+  } finally {
+    homeSaving = false;
+    $("home-save").disabled = false;
+  }
+});
+
+// Hero photo: wide, shrunk in the browser, stored in its own document so the store's settings stay small.
+const HERO_STEPS = [[1600, 0.7], [1400, 0.62], [1200, 0.55], [1000, 0.5]];
+const HERO_GOOD = 300000, HERO_MAX = 700000;
+let heroPending;            // undefined = nothing chosen, "" = remove, string = new photo
+let heroSaved = "";
+let heroBusy = false, heroSaving = false;
+function showHero(src) {
+  const ok = safeImage(src);
+  $("hero-preview").hidden = !ok;
+  if (ok) $("hero-preview").src = ok; else $("hero-preview").removeAttribute("src");
+  $("hero-none").hidden = !!ok;
+  $("hero-remove").hidden = !ok;
+}
+$("hero-file").addEventListener("change", async () => {
+  const f = $("hero-file").files && $("hero-file").files[0];
+  if (!f) return;
+  heroBusy = true;
+  setStatus("hero-status", "Preparing photo…");
+  try {
+    heroPending = await compressPhoto(f, HERO_STEPS, HERO_GOOD, HERO_MAX);
+    showHero(heroPending);
+    setStatus("hero-status", "Photo ready. Press Publish photo to put it on the store.");
+  } catch (err) {
+    showHero(heroPending !== undefined ? heroPending : heroSaved);
+    setStatus("hero-status", "Couldn't use that photo. Try a JPG or PNG.");
+  } finally {
+    heroBusy = false;
+    try { $("hero-file").value = ""; } catch (e) { /* ignore */ }
+  }
+});
+$("hero-remove").addEventListener("click", () => { heroPending = ""; showHero(""); setStatus("hero-status", "Photo removed here. Press Publish photo to remove it from the store."); });
+$("hero-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (heroSaving) return;
+  if (heroBusy) { setStatus("hero-status", "Photo is still being prepared. Try again in a second."); return; }
+  if (heroPending === undefined) { setStatus("hero-status", "Choose a photo first, or press Remove photo."); return; }
+  heroSaving = true;
+  $("hero-save").disabled = true;
+  setStatus("hero-status", "Saving… it is not live until this says Saved.", { sticky: true });
+  try {
+    await db.doc("settings/hero").set({ image: heroPending });
+    heroSaved = heroPending; heroPending = undefined;
+    setStatus("hero-status", "Saved. The hero photo is live on the store now.", { ms: 8000 });
+  } catch (err) {
+    setStatus("hero-status", explainError(err), { sticky: true, error: true });
+  } finally {
+    heroSaving = false;
+    $("hero-save").disabled = false;
+  }
+});
+
 // ---------- Sign in ----------
 $("login-form").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -417,7 +690,7 @@ let signedInUser = null;
 async function checkPublishing(user) {
   const box = $("conn-box"), text = $("conn-text"), uidRow = $("conn-uid-row");
   const who = user.email || "this account";
-  box.hidden = false; box.className = "conn-box"; uidRow.hidden = true;
+  box.hidden = false; box.className = "adm-conn"; uidRow.hidden = true;
   text.textContent = "Checking that saving works for " + who + "…";
   let timer;
   try {
@@ -427,12 +700,12 @@ async function checkPublishing(user) {
     ]);
     clearTimeout(timer);
     if (signedInUser !== user) return;
-    box.className = "conn-box good";
+    box.className = "adm-conn good";
     text.textContent = "✔ Signed in as " + who + ". Saving works: anything you add here goes live on the store instantly.";
   } catch (err) {
     clearTimeout(timer);
     if (signedInUser !== user) return;
-    box.className = "conn-box bad";
+    box.className = "adm-conn bad";
     const code = err && err.code ? String(err.code) : "";
     if (code === "permission-denied") {
       text.textContent = "✖ Saving is BLOCKED. The database refuses changes from " + who + ", so nothing you add can go live. In Firebase → Firestore Database → Rules, the UID in quotes (all 3 places) must be exactly the one below. Publish the rules, then press Check again.";
@@ -457,15 +730,17 @@ auth.onAuthStateChanged(user => {
   signedInUser = user || null;
   $("login-view").style.display = user ? "none" : "block";
   $("panel-view").style.display = user ? "block" : "none";
+  $("logout-btn").hidden = !user;
   if (user) checkPublishing(user); else $("conn-box").hidden = true;
   if (user && !listening) { listening = true; listenProducts(); listenNotices(); loadCommunity(); listenSettings(); }
 });
 
 // ---------- Tabs ----------
-document.querySelectorAll(".admin-tab").forEach(btn => {
+document.querySelectorAll(".adm-tab").forEach(btn => {
   btn.addEventListener("click", () => {
-    document.querySelectorAll(".admin-tab").forEach(b => b.classList.toggle("active", b === btn));
+    document.querySelectorAll(".adm-tab").forEach(b => b.classList.toggle("active", b === btn));
     $("tab-products").hidden = btn.dataset.tab !== "products";
+    $("tab-home").hidden = btn.dataset.tab !== "home";
     $("tab-notices").hidden = btn.dataset.tab !== "notices";
     $("tab-categories").hidden = btn.dataset.tab !== "categories";
     $("tab-info").hidden = btn.dataset.tab !== "info";
@@ -515,10 +790,10 @@ function renderSizeExtras() {
   $("extras-block").hidden = sizes.length < 2;     // one size = nothing to compare
   if (sizes.length < 2) return;
   sizes.forEach(sz => {
-    const row = document.createElement("div"); row.className = "extra-row";
+    const row = document.createElement("div"); row.className = "adm-extra";
     const lab = document.createElement("span"); lab.textContent = sz;
     const inp = document.createElement("input");
-    inp.type = "number"; inp.min = "0"; inp.max = String(EXTRA_MAX); inp.step = "1"; inp.inputMode = "numeric";
+    inp.className = "fld"; inp.type = "number"; inp.min = "0"; inp.max = String(EXTRA_MAX); inp.step = "1"; inp.inputMode = "numeric";
     inp.placeholder = "extra R (0 = none)"; inp.setAttribute("aria-label", "Extra rands for size " + sz);
     inp.dataset.size = sz;
     inp.value = sizeExtraVals[sz] || "";
@@ -538,25 +813,25 @@ function renderColors() {
   const list = $("color-list");
   list.innerHTML = "";
   colorState.forEach((c, i) => {
-    const card = document.createElement("div"); card.className = "color-card";
-    const top = document.createElement("div"); top.className = "color-card-top";
+    const card = document.createElement("div"); card.className = "adm-color";
+    const top = document.createElement("div"); top.className = "adm-color-top";
     const name = document.createElement("input");
-    name.type = "text"; name.maxLength = 30; name.placeholder = "Colour name, e.g. Black"; name.value = c.name;
+    name.className = "fld"; name.type = "text"; name.maxLength = 30; name.placeholder = "Colour name, e.g. Black"; name.value = c.name;
     name.setAttribute("aria-label", "Colour name");
     name.addEventListener("input", () => { c.name = name.value; });
     const extra = document.createElement("input");
-    extra.type = "number"; extra.min = "0"; extra.max = String(EXTRA_MAX); extra.step = "1"; extra.inputMode = "numeric";
+    extra.className = "fld !w-28 !flex-none"; extra.type = "number"; extra.min = "0"; extra.max = String(EXTRA_MAX); extra.step = "1"; extra.inputMode = "numeric";
     extra.placeholder = "extra R"; extra.value = c.extra; extra.setAttribute("aria-label", "Extra rands for this colour");
     extra.dataset.colorExtra = String(i);
     extra.addEventListener("input", () => { c.extra = extra.value; });
     top.appendChild(name); top.appendChild(extra);
 
-    const pbox = document.createElement("div"); pbox.className = "photo-box";
-    const prev = document.createElement("img"); prev.className = "photo-preview"; prev.alt = "Photo for " + (c.name || "this colour");
+    const pbox = document.createElement("div"); pbox.className = "adm-photo";
+    const prev = document.createElement("img"); prev.className = "adm-preview"; prev.alt = "Photo for " + (c.name || "this colour");
     const shown = safeImage(c.image);
     prev.hidden = !shown; if (shown) prev.src = shown;
-    const acts = document.createElement("div"); acts.className = "photo-actions";
-    const pick = document.createElement("label"); pick.className = "btn photo-pick"; pick.textContent = shown ? "Change photo" : "Photo for this colour";
+    const acts = document.createElement("div"); acts.className = "adm-photo-actions";
+    const pick = document.createElement("label"); pick.className = "adm-small cursor-pointer"; pick.textContent = shown ? "Change photo" : "Photo for this colour";
     const file = document.createElement("input"); file.type = "file"; file.accept = "image/*"; file.hidden = true;
     file.addEventListener("change", async () => {
       const f = file.files && file.files[0];
@@ -571,18 +846,18 @@ function renderColors() {
     });
     pick.appendChild(file); acts.appendChild(pick);
     if (shown) {
-      const rm = document.createElement("button"); rm.type = "button"; rm.className = "del-btn"; rm.textContent = "Remove photo";
+      const rm = document.createElement("button"); rm.type = "button"; rm.className = "adm-small"; rm.textContent = "Remove photo";
       rm.addEventListener("click", () => { c.image = ""; renderColors(); });
       acts.appendChild(rm);
     }
     pbox.appendChild(prev); pbox.appendChild(acts);
 
-    const foot = document.createElement("div"); foot.className = "color-card-top";
-    const sold = document.createElement("label"); sold.className = "check-line";
+    const foot = document.createElement("div"); foot.className = "adm-color-top";
+    const sold = document.createElement("label"); sold.className = "adm-check";
     const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = !!c.soldOut;
     cb.addEventListener("change", () => { c.soldOut = cb.checked; });
     sold.appendChild(cb); sold.appendChild(document.createTextNode(" Sold out"));
-    const del = document.createElement("button"); del.type = "button"; del.className = "del-btn"; del.textContent = "Remove colour";
+    const del = document.createElement("button"); del.type = "button"; del.className = "adm-small"; del.textContent = "Remove colour";
     del.addEventListener("click", () => { colorState.splice(i, 1); renderColors(); });
     foot.appendChild(sold); foot.appendChild(del);
     foot.style.justifyContent = "space-between"; foot.style.alignItems = "center";
@@ -669,6 +944,8 @@ function startEdit(p) {
   $("p-price").value = p.price != null ? p.price : "";
   $("p-note").value = p.note || "";
   $("p-soldout").checked = !!p.soldOut;
+  $("p-desc").value = p.description || "";
+  $("p-new").checked = p.isNew === true;
   setAudience(Array.isArray(p.audience) ? p.audience : []);
   savedPhoto = safeImage(p.image); photoData = undefined; showPhoto(savedPhoto);
   setSizes(Array.isArray(p.sizes) && p.sizes.length ? p.sizes : DEFAULT_SIZES);
@@ -689,16 +966,20 @@ $("product-form").addEventListener("submit", async (e) => {
   const note = $("p-note").value.trim();
   const sizes = collectSizes();
   const soldOut = $("p-soldout").checked;
+  const description = $("p-desc").value.trim();
+  const isNew = $("p-new").checked;
   const audience = collectAudience();
   if (photoBusy) { setStatus("admin-status", "Photo is still being prepared. Try again in a second."); return; }
   if (!name || !category || !price) { setStatus("admin-status", "Name, category and price are required."); return; }
+  if (description.length > 600) { setStatus("admin-status", "The description is too long (600 characters at most)."); return; }
+  if (hasPlaceholder(description)) { setStatus("admin-status", "The description still has a [bracketed] or ____ blank in it. Fill it in or remove it."); return; }
   if (audience.length === 0) { setStatus("admin-status", "Pick who it's for: Men, Women, Teens or Kids."); return; }
   if (sizes.length === 0) { setStatus("admin-status", "Pick at least one size (or tick One size)."); return; }
   if (colorBusy) { setStatus("admin-status", "A colour photo is still being prepared. Try again in a second."); return; }
   const v = collectVariants();
   if (v.error) { setStatus("admin-status", v.error); if (v.focus && v.focus.focus) v.focus.focus(); return; }
   // sizeExtras and colors are always sent (empty when none) so editing an item can also clear them.
-  const data = { name, category, audience, price, note, sizes, soldOut, sizeExtras: v.sizeExtras, colors: v.colors };
+  const data = { name, category, audience, price, note, description, isNew, sizes, soldOut, sizeExtras: v.sizeExtras, colors: v.colors };
   if (photoData !== undefined) data.image = photoData;   // untouched photo is left exactly as saved
   // One item has to fit in Firestore's 1 MiB limit, photos included. Say so before saving, not after a vague failure.
   const mainPhoto = photoData !== undefined ? photoData : savedPhoto;
@@ -767,10 +1048,10 @@ function listenProducts() {
       tr.children[2].textContent = sizes.join(", ") + (colorNames.length ? " / " + colorNames.map(c => c.name + (c.soldOut ? " (sold out)" : "")).join(", ") : "");
 
       const editBtn = document.createElement("button");
-      editBtn.className = "del-btn"; editBtn.textContent = "Edit";
+      editBtn.className = "adm-small"; editBtn.textContent = "Edit";
       editBtn.addEventListener("click", () => startEdit(p));
       const delBtn = document.createElement("button");
-      delBtn.className = "del-btn"; delBtn.textContent = "Remove";
+      delBtn.className = "adm-small"; delBtn.textContent = "Remove";
       delBtn.addEventListener("click", async () => {
         if (!confirm("Remove " + p.name + " from the store?")) return;
         try {
@@ -809,7 +1090,7 @@ async function copyText(text) {
 }
 function actionBtn(label, onClick) {
   const b = document.createElement("button");
-  b.className = "del-btn"; b.textContent = label;
+  b.className = "adm-small"; b.textContent = label;
   b.addEventListener("click", onClick);
   return b;
 }
@@ -999,12 +1280,17 @@ $("category-form").addEventListener("submit", async (e) => {
 });
 
 function listenSettings() {
+  db.doc("settings/hero").onSnapshot(snap => {
+    heroSaved = snap.exists ? safeImage((snap.data() || {}).image) : "";
+    if (heroPending === undefined) showHero(heroSaved);
+  }, () => { /* no hero photo yet */ });
   db.doc("settings/site").onSnapshot(snap => {
     const data = snap.exists ? (snap.data() || {}) : {};
     categories = cleanCategories(data.categories);
     fillCategorySelect();
     renderCategories();
     fillInfoForm(data);
+    fillHomeForm(data);
   }, () => setStatus("category-status", "Couldn't load categories. Check your Firestore rules."));
 }
 

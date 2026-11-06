@@ -1,20 +1,47 @@
 const WHATSAPP_NUMBER = "27665411726";
-// Shoppers pick WHO it's for first (department), then the product type.
+// Shoppers can narrow by WHO it's for (audience) and by product type (category).
 const DEPARTMENTS = ["Men", "Women", "Teens", "Kids"];
 const DEFAULT_AUDIENCE = ["Men", "Women"];   // items saved before audiences existed are treated as adult unisex until the owner sets one
 // Product types are edited by the owner (admin -> Categories) and stored in settings/site. These are only the starting set.
 const DEFAULT_CATEGORIES = ["Hoodies", "Sweaters", "Tracksuits", "Hats"];
 let categories = DEFAULT_CATEGORIES.slice();
-const ALL = "__all__";                        // "Everything" inside a department
 let products = [];
 let catalogLoaded = false;
-let cart = [];
-let currentDept = null;
-let currentType = null;
-let currentSize = null;
+let catalogFailed = false;
+let cart = [];                                // lives in memory only: a refresh empties it, so a price change can never leave a stale price in a bag
+let filters = { aud: null, cat: null, q: "" };
 
-// Store info (delivery fee, delivery/returns/privacy wording, contact details) is edited by the owner in admin -> Store info
-// and kept in settings/site. Nothing here is customer data.
+const $ = (id) => document.getElementById(id);
+function h(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;   // textContent only: owner-written text can never inject markup
+  return e;
+}
+
+// ---------- Icons (Font Awesome Free 6.4, CC BY 4.0) drawn from the sprite at the top of index.html ----------
+const SVGNS = "http://www.w3.org/2000/svg";
+const ICON_DIMS = { "bag-shopping": [448, 512], "box-open": [640, 512], "circle-check": [512, 512], "trash-can": [448, 512], "eye": [576, 512], "arrow-right": [448, 512], "check": [448, 512] };
+function icon(name, cls) {
+  const d = ICON_DIMS[name], s = document.createElementNS(SVGNS, "svg"), u = document.createElementNS(SVGNS, "use");
+  s.setAttribute("class", "ic" + (cls ? " " + cls : ""));
+  s.setAttribute("viewBox", "0 0 " + d[0] + " " + d[1]);
+  s.setAttribute("width", (d[0] / d[1]).toFixed(3) + "em");
+  s.setAttribute("height", "1em");
+  s.setAttribute("aria-hidden", "true");
+  u.setAttribute("href", "#i-" + name);
+  s.appendChild(u);
+  return s;
+}
+
+// R1,250.00 — two decimals like the design, a comma between thousands.
+function fmtR(n) {
+  const v = Math.round(Number(n) * 100) / 100;
+  const parts = v.toFixed(2).split(".");
+  return "R" + parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "." + parts[1];
+}
+
+// ---------- Store info (delivery fee, wording, contact) — edited by the owner in admin -> Store info, kept in settings/site ----------
 const INFO_TEXT_FIELDS = { deliveryText: 600, returnsText: 2000, privacyText: 2000, bizName: 80, bizAddress: 200, bizPhone: 30, bizEmail: 100, bizReg: 40 };
 function parseSiteInfo(data) {
   const d = data || {}, out = {};
@@ -24,8 +51,6 @@ function parseSiteInfo(data) {
   return out;
 }
 let siteInfo = parseSiteInfo({});
-
-function fmtR(n) { return "R" + Number(n).toLocaleString("en-ZA"); }
 
 function audiencesFor(p) {
   const a = Array.isArray(p.audience) ? p.audience.filter(x => DEPARTMENTS.includes(x)) : [];
@@ -49,7 +74,7 @@ function categoryOrder(items) {
 }
 function inDept(dept) { return products.filter(p => audiencesFor(p).includes(dept)); }
 
-// Product photos are stored inside the product as a small JPEG data URL. Only accept that exact shape.
+// Photos are stored inside the product as a small data URL. Only accept that exact shape.
 const IMAGE_RE = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/]+=*$/;
 function safeImage(v) { return typeof v === "string" && IMAGE_RE.test(v) ? v : ""; }
 
@@ -82,380 +107,7 @@ function coverImage(p) {
   const c = colorsFor(p).find(x => x.image);
   return c ? c.image : "";
 }
-function firstImage(list) {
-  for (const p of list) { const i = coverImage(p); if (i) return i; }
-  return "";
-}
-
-function showPage(name) {
-  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-  document.getElementById("page-" + name).classList.add("active");
-  document.querySelectorAll(".nav-link").forEach(b => b.classList.remove("active"));
-  window.scrollTo(0, 0);
-}
-function markNav(test) {
-  document.querySelectorAll(".nav-link").forEach(b => { if (test(b.dataset)) b.classList.add("active"); });
-}
-function goHome() {
-  currentDept = null; currentType = null; currentSize = null;
-  showPage("home");
-  markNav(d => d.page === "home");
-  renderHomeTiles();
-}
-function goDept(dept, type) {
-  currentDept = dept; currentType = type || null; currentSize = null;
-  showPage("category");
-  markNav(d => d.dept === dept);
-  renderCategoryPage();
-}
-function goNotices() {
-  currentDept = null; currentType = null; currentSize = null;
-  showPage("notices");
-  markNav(d => d.page === "notices");
-}
-function goInfo() {
-  currentDept = null; currentType = null; currentSize = null;
-  showPage("info");
-  markNav(d => d.page === "info");
-}
-document.getElementById("nav-home-btn").addEventListener("click", goHome);
-document.getElementById("notices-back").addEventListener("click", goHome);
-document.getElementById("info-back").addEventListener("click", goHome);
-document.getElementById("footer-info").addEventListener("click", (e) => { e.preventDefault(); goInfo(); });
-document.getElementById("cart-info-btn").addEventListener("click", () => { closeCart(); goInfo(); });
-document.getElementById("hero-shop-btn").addEventListener("click", () => {
-  document.getElementById("shop-section").scrollIntoView({ behavior: "smooth" });
-});
-document.querySelectorAll(".nav-link").forEach(btn => {
-  btn.addEventListener("click", () => {
-    if (btn.dataset.page === "notices") goNotices();
-    else if (btn.dataset.page === "info") goInfo();
-    else if (btn.dataset.dept) goDept(btn.dataset.dept);
-    else goHome();
-  });
-});
-
-// ---------- Phone menu (below 1100px the nav links open as a full-screen menu) ----------
-const topnavEl = document.querySelector(".topnav");
-const menuToggle = document.getElementById("menu-toggle");
-function setMenu(open) {
-  topnavEl.classList.toggle("menu-open", open);
-  menuToggle.setAttribute("aria-expanded", open ? "true" : "false");
-  document.body.classList.toggle("no-scroll", open);
-  if (open) document.getElementById("menu-close").focus(); else if (document.activeElement && document.activeElement.id === "menu-close") menuToggle.focus();
-}
-menuToggle.addEventListener("click", () => setMenu(true));
-document.getElementById("menu-close").addEventListener("click", () => setMenu(false));
-document.getElementById("nav-links").addEventListener("click", (e) => { if (e.target.closest(".nav-link, .nav-extra")) setMenu(false); });
-document.addEventListener("keydown", (e) => { if (e.key === "Escape" && topnavEl.classList.contains("menu-open")) setMenu(false); });
-const wideScreen = window.matchMedia ? window.matchMedia("(min-width:1100px)") : null;   // older browsers: skip, the menu still closes on tap
-if (wideScreen && wideScreen.addEventListener) wideScreen.addEventListener("change", (e) => { if (e.matches) setMenu(false); });
-
-// What delivery costs for the chosen method. fee === null means the owner hasn't set a fee, so the total can't include it yet.
-function deliveryFor(method) {
-  if (method === "Collection") return { fee: 0, label: "Collection, no fee", msg: "Collection (no fee)" };
-  const f = siteInfo.deliveryFee;
-  if (f === null) return { fee: null, label: "To be confirmed", msg: "to be confirmed (please tell me the cost)" };
-  const text = f === 0 ? "Free" : fmtR(f);
-  return { fee: f, label: text, msg: text };
-}
-function renderCart() {
-  const itemsEl = document.getElementById("cart-items");
-  const lines = document.getElementById("cart-lines");
-  document.getElementById("cart-count").textContent = cart.reduce((s, i) => s + i.qty, 0);
-  if (cart.length === 0) {
-    itemsEl.innerHTML = '<p class="cart-empty">Your bag is empty.</p>';
-    lines.hidden = true;
-    document.getElementById("cart-total-label").textContent = "Total";
-    document.getElementById("cart-total").textContent = fmtR(0);
-    return;
-  }
-  itemsEl.innerHTML = "";
-  let total = 0;
-  cart.forEach((item, idx) => {
-    total += item.price * item.qty;
-    const row = document.createElement("div");
-    row.className = "cart-item";
-    const label = document.createElement("span");
-    label.textContent = `${item.name} (${item.size}${item.color ? ", " + item.color : ""}) x${item.qty} — ${fmtR(item.price * item.qty)}`;
-    const rm = document.createElement("button");
-    rm.className = "cart-item-remove"; rm.textContent = "Remove";
-    rm.addEventListener("click", () => { cart.splice(idx, 1); renderCart(); });
-    row.appendChild(label); row.appendChild(rm);
-    itemsEl.appendChild(row);
-  });
-  const d = deliveryFor(getMethod());
-  lines.hidden = false;
-  document.getElementById("cart-subtotal").textContent = fmtR(total);
-  document.getElementById("cart-delivery").textContent = d.label;
-  document.getElementById("cart-total-label").textContent = d.fee === null ? "Total (excl. delivery)" : "Total";
-  document.getElementById("cart-total").textContent = fmtR(total + (d.fee || 0));
-}
-function addToCart(p, size, color) {
-  const colorName = color ? color.name : "";
-  const existing = cart.find(i => i.id === p.id && i.size === size && i.color === colorName);   // same item, size AND colour = one line
-  if (existing) existing.qty += 1;
-  else cart.push({ id: p.id, name: p.name, price: priceFor(p, size, color), size, color: colorName, qty: 1 });
-  renderCart(); openCart();
-}
-function openCart() { document.getElementById("cart-drawer").classList.add("open"); document.getElementById("scrim").classList.add("open"); }
-function closeCart() { document.getElementById("cart-drawer").classList.remove("open"); document.getElementById("scrim").classList.remove("open"); }
-document.getElementById("cart-toggle").addEventListener("click", openCart);
-document.getElementById("cart-close").addEventListener("click", closeCart);
-document.getElementById("scrim").addEventListener("click", closeCart);
-// ---------- Delivery details (kept on the customer's own device only) ----------
-const DETAILS_KEY = "ragnar_delivery_details";
-const FIELD_IDS = ["name", "phone", "street", "suburb", "city", "province", "postal", "notes"];
-const $d = (k) => document.getElementById("d-" + k);
-
-function getMethod() {
-  return document.querySelector('#delivery-form input[name="method"]:checked').value;
-}
-function toggleAddressFields() {
-  document.getElementById("address-fields").style.display = getMethod() === "Collection" ? "none" : "grid";
-}
-function saveDetails() {
-  const data = { method: getMethod() };
-  FIELD_IDS.forEach(k => { data[k] = $d(k).value.trim(); });
-  try { localStorage.setItem(DETAILS_KEY, JSON.stringify(data)); } catch (e) { /* storage blocked — fine */ }
-}
-function loadDetails() {
-  let data = null;
-  try { data = JSON.parse(localStorage.getItem(DETAILS_KEY) || "null"); } catch (e) { /* ignore */ }
-  if (!data) return;
-  FIELD_IDS.forEach(k => { if (data[k]) $d(k).value = data[k]; });
-  const radio = document.querySelector(`#delivery-form input[name="method"][value="${data.method}"]`);
-  if (radio) radio.checked = true;
-  toggleAddressFields();
-}
-document.querySelectorAll("#delivery-form input, #delivery-form select").forEach(el => {
-  el.addEventListener("input", saveDetails);
-  el.addEventListener("change", () => { saveDetails(); toggleAddressFields(); });
-});
-// Switching between Delivery and Collection changes the delivery line and the total.
-document.querySelectorAll('#delivery-form input[name="method"]').forEach(r => r.addEventListener("change", renderCart));
-loadDetails();
-
-function validateDetails() {
-  const required = ["name", "phone"];
-  if (getMethod() === "Delivery") required.push("street", "suburb", "city", "province", "postal");
-  let firstBad = null;
-  FIELD_IDS.forEach(k => $d(k).classList.remove("invalid"));
-  required.forEach(k => {
-    if (!$d(k).value.trim()) {
-      $d(k).classList.add("invalid");
-      if (!firstBad) firstBad = $d(k);
-    }
-  });
-  const err = document.getElementById("delivery-error");
-  if (firstBad) {
-    err.textContent = "Please fill in the highlighted fields so we can deliver your order.";
-    firstBad.scrollIntoView({ block: "center", behavior: "smooth" });
-    firstBad.focus();
-    return false;
-  }
-  err.textContent = "";
-  return true;
-}
-
-document.getElementById("checkout-btn").addEventListener("click", (e) => {
-  e.preventDefault();
-  if (cart.length === 0) return;
-  if (!validateDetails()) return;
-  saveDetails();
-  const lines = cart.map(i => `- ${i.name} (Size: ${i.size}${i.color ? ", Colour: " + i.color : ""}) x${i.qty} — ${fmtR(i.price * i.qty)}`).join("\n");
-  const itemsTotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
-  const method = getMethod();
-  const dl = deliveryFor(method);
-  const totals = `Items: ${fmtR(itemsTotal)}\nDelivery: ${dl.msg}\n` +
-    (dl.fee === null ? `Total (excl. delivery): ${fmtR(itemsTotal)}` : `Total: ${fmtR(itemsTotal + dl.fee)}`);
-  const v = (k) => $d(k).value.trim();
-  let details = `Name: ${v("name")}\nContact: ${v("phone")}\n${method === "Collection" ? "Method: I'll collect" : "Method: Delivery"}`;
-  if (method === "Delivery") {
-    details += `\nAddress: ${v("street")}, ${v("suburb")}, ${v("city")}, ${v("province")}, ${v("postal")}`;
-    if (v("notes")) details += `\nNotes: ${v("notes")}`;
-  }
-  const msg = `Hi! I'd like to order:\n${lines}\n\n${totals}\n\n${details}`;
-  window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
-});
-
 const DEFAULT_SIZES = ["S", "M", "L", "XL"];
-function sizesFor(p) { return Array.isArray(p.sizes) && p.sizes.length ? p.sizes : DEFAULT_SIZES; }
-
-function buildProductCard(p) {
-  const sizes = sizesFor(p);
-  const colors = colorsFor(p);
-  const soldOut = !!p.soldOut || (colors.length > 0 && colors.every(c => c.soldOut));   // every colour gone = the item is gone
-  const card = document.createElement("div");
-  card.className = "product-card" + (soldOut ? " sold-out" : "");
-  card.innerHTML = `<div class="product-swatch"></div><div class="product-name"></div><div class="product-price"></div>` +
-    (colors.length ? `<div class="size-label color-label">${colors.length === 1 ? "Colour" : "Choose a colour"}</div><div class="color-row"></div>` : "") +
-    `<div class="size-label">${sizes.length === 1 ? "Size" : "Choose a size"}</div>
-    <div class="size-row"></div>
-    <p class="size-error"></p>
-    <button type="button" class="add-btn">Add to bag</button>`;
-
-  // The photo follows the chosen colour. A colour without its own photo falls back to the item's main photo.
-  const defaultPhoto = coverImage(p);
-  let photoEl = card.querySelector(".product-swatch");
-  function showPhoto(src, alt) {
-    if (!src) return;
-    if (photoEl.tagName !== "IMG") {
-      const img = document.createElement("img");
-      img.className = "product-photo";
-      img.loading = "lazy";
-      img.decoding = "async";
-      card.replaceChild(img, photoEl);
-      photoEl = img;
-    }
-    photoEl.src = src;
-    photoEl.alt = alt || "";
-  }
-  showPhoto(defaultPhoto, p.name || "");
-  card.querySelector(".product-name").textContent = p.name;
-
-  const row = card.querySelector(".size-row");
-  const colorRow = card.querySelector(".color-row");
-  const err = card.querySelector(".size-error");
-  const btn = card.querySelector(".add-btn");
-  const priceEl = card.querySelector(".product-price");
-  let size = sizes.length === 1 ? sizes[0] : null;   // never pre-pick a size for the customer
-  let color = colors.length === 1 && !colors[0].soldOut && !soldOut ? colors[0] : null;   // a single colour is not a choice
-
-  // "From R450" until everything that changes the price has been chosen, then the exact price.
-  function paintPrice() {
-    const sx = (size ? [size] : sizes).map(s => sizeExtraFor(p, s));
-    const open = colors.filter(c => !c.soldOut);
-    const cx = !colors.length ? [0] : (color ? [color] : (open.length ? open : colors)).map(c => c.extra);
-    const lo = basePrice(p) + Math.min(...sx) + Math.min(...cx);
-    const hi = basePrice(p) + Math.max(...sx) + Math.max(...cx);
-    priceEl.textContent = (lo === hi ? fmtR(lo) : "From " + fmtR(lo)) + (p.note ? " · " + p.note : "");
-  }
-
-  const pills = sizes.map(s => {
-    const pill = document.createElement("button");
-    pill.type = "button";
-    pill.className = "size-pill" + (s === size ? " active" : "");
-    pill.textContent = s;
-    pill.disabled = soldOut;
-    pill.addEventListener("click", () => {
-      pills.forEach(x => x.classList.remove("active"));
-      pill.classList.add("active");
-      size = s;
-      err.textContent = "";
-      paintPrice();
-    });
-    row.appendChild(pill);
-    return pill;
-  });
-
-  const chips = colors.map(c => {
-    const chip = document.createElement("button");
-    chip.type = "button";
-    chip.className = "color-chip" + (c === color ? " active" : "") + (c.soldOut ? " sold" : "");
-    chip.textContent = c.name;
-    chip.disabled = soldOut || c.soldOut;
-    if (c.soldOut) chip.setAttribute("aria-label", c.name + " (sold out)");
-    chip.addEventListener("click", () => {
-      chips.forEach(x => x.classList.remove("active"));
-      chip.classList.add("active");
-      color = c;
-      err.textContent = "";
-      showPhoto(c.image || defaultPhoto, (p.name || "") + " — " + c.name);
-      paintPrice();
-    });
-    colorRow.appendChild(chip);
-    return chip;
-  });
-  if (color) showPhoto(color.image || defaultPhoto, (p.name || "") + " — " + color.name);
-  paintPrice();
-
-  if (soldOut) {
-    btn.textContent = "Sold out";
-    btn.disabled = true;
-  } else {
-    btn.addEventListener("click", () => {
-      if (colors.length && !color && !size) { err.textContent = "Pick a colour and a size first."; return; }
-      if (colors.length && !color) { err.textContent = "Pick a colour first."; return; }
-      if (!size) { err.textContent = "Pick a size first."; return; }
-      addToCart(p, size, color);
-    });
-  }
-  return card;
-}
-function makeTile(name, count, onClick, image) {
-  const tile = document.createElement("button");
-  tile.type = "button";
-  tile.className = "tile";
-  tile.innerHTML = `<div class="tile-swatch"></div><div class="tile-label"><div class="tile-name"></div><div class="tile-count"></div></div>`;
-  if (image) {
-    const sw = tile.querySelector(".tile-swatch");
-    sw.style.backgroundImage = 'url("' + image + '")';
-    sw.style.backgroundSize = "cover";
-    sw.style.backgroundPosition = "center";
-  }
-  tile.querySelector(".tile-name").textContent = name;
-  tile.querySelector(".tile-count").textContent = count === 1 ? "1 item" : count + " items";
-  tile.addEventListener("click", onClick);
-  return tile;
-}
-
-// Home: one tile per department that actually has stock. Empty departments stay hidden.
-function renderHomeTiles() {
-  if (!catalogLoaded) return;
-  const root = document.getElementById("home-tiles");
-  root.innerHTML = "";
-  const depts = DEPARTMENTS.filter(d => inDept(d).length > 0);
-  document.querySelectorAll(".nav-link[data-dept]").forEach(b => { b.hidden = !depts.includes(b.dataset.dept); });
-  if (depts.length === 0) { root.innerHTML = '<p class="empty-note">Nothing here yet — check back soon.</p>'; return; }
-  depts.forEach(d => { const list = inDept(d); root.appendChild(makeTile(d, list.length, () => goDept(d), firstImage(list))); });
-}
-
-// Department page = type tiles (Hoodies, Sweaters…). Type page = product grid with size/age filter.
-function renderCategoryPage() {
-  if (!currentDept) return;
-  const items = inDept(currentDept);
-  const crumb = document.getElementById("breadcrumb");
-  crumb.innerHTML = "";
-  const crumbBtn = (label, fn) => {
-    const b = document.createElement("button");
-    b.type = "button"; b.textContent = label; b.addEventListener("click", fn);
-    crumb.appendChild(b);
-  };
-  const sep = () => crumb.appendChild(document.createTextNode(" / "));
-  crumbBtn("Home", goHome); sep();
-
-  const tiles = document.getElementById("type-tiles");
-  const grid = document.getElementById("category-grid");
-  const bar = document.getElementById("size-filter");
-
-  if (!currentType) {
-    crumb.appendChild(document.createTextNode(currentDept));
-    document.getElementById("category-title").textContent = currentDept;
-    grid.hidden = true; bar.hidden = true; tiles.hidden = false;
-    renderTypeTiles(items);
-  } else {
-    crumbBtn(currentDept, () => goDept(currentDept)); sep();
-    const typeLabel = currentType === ALL ? "Everything" : currentType;
-    crumb.appendChild(document.createTextNode(typeLabel));
-    document.getElementById("category-title").textContent = currentDept + " · " + typeLabel;
-    tiles.hidden = true; grid.hidden = false;
-    renderProductList(items);
-  }
-}
-
-function renderTypeTiles(items) {
-  const root = document.getElementById("type-tiles");
-  root.innerHTML = "";
-  if (items.length === 0) { root.innerHTML = '<p class="empty-note">Nothing here yet — check back soon.</p>'; return; }
-  const entries = [{ key: ALL, label: "Everything", count: items.length, image: firstImage(items) }];
-  categoryOrder(items).forEach(c => {
-    const list = items.filter(p => p.category === c);
-    if (list.length > 0) entries.push({ key: c, label: c, count: list.length, image: firstImage(list) });
-  });
-  entries.forEach(e => root.appendChild(makeTile(e.label, e.count, () => goDept(currentDept, e.key), e.image)));
-}
-
 const SIZE_ORDER = ["One size", "XS", "S", "M", "L", "XL", "XXL", "3XL"];
 function sizeRank(s) {
   const i = SIZE_ORDER.indexOf(s);
@@ -464,45 +116,591 @@ function sizeRank(s) {
   return m ? 100 + Number(m[1]) : 1000;
 }
 function sizeSort(a, b) { return sizeRank(a) - sizeRank(b) || a.localeCompare(b); }
+function sizesFor(p) { return (Array.isArray(p.sizes) && p.sizes.length ? p.sizes : DEFAULT_SIZES).slice().sort(sizeSort); }
+function isSoldOut(p) { const cs = colorsFor(p); return !!p.soldOut || (cs.length > 0 && cs.every(c => c.soldOut)); }   // every colour gone = the item is gone
 
-function renderProductList(items) {
-  const grid = document.getElementById("category-grid");
-  const bar = document.getElementById("size-filter");
-  const list = currentType === ALL ? items : items.filter(p => p.category === currentType);
+// Lowest and highest price still possible given what the shopper has chosen so far.
+function priceSpan(p, size, color) {
+  const sizes = sizesFor(p), colors = colorsFor(p);
+  const sx = (size ? [size] : sizes).map(s => sizeExtraFor(p, s));
+  const open = colors.filter(c => !c.soldOut);
+  const cx = !colors.length ? [0] : (color ? [color] : (open.length ? open : colors)).map(c => c.extra);
+  const b = basePrice(p);
+  return { lo: b + Math.min(...sx) + Math.min(...cx), hi: b + Math.max(...sx) + Math.max(...cx) };
+}
+// Nothing to choose = nothing to wait for: a single size / single colour is picked for the shopper.
+function autoSize(p) { const s = sizesFor(p); return s.length === 1 ? s[0] : null; }
+function autoColor(p) { const cs = colorsFor(p); return cs.length === 1 && !cs[0].soldOut && !isSoldOut(p) ? cs[0] : null; }
 
-  // Size / age filter: built from what is actually on this page, so it works for adult sizes and kids' ages alike.
-  const sizes = Array.from(new Set(list.reduce((acc, p) => acc.concat(sizesFor(p)), []))).sort(sizeSort);
-  if (currentSize && !sizes.includes(currentSize)) currentSize = null;
-  bar.innerHTML = "";
-  if (sizes.length >= 2) {
-    const label = document.createElement("span");
-    label.className = "filter-label"; label.textContent = "Size / age";
-    bar.appendChild(label);
-    [null].concat(sizes).forEach(s => {
-      const chip = document.createElement("button");
-      chip.type = "button";
-      chip.className = "filter-chip" + (s === currentSize ? " active" : "");
-      chip.textContent = s === null ? "All" : s;
-      chip.setAttribute("aria-pressed", s === currentSize ? "true" : "false");
-      chip.addEventListener("click", () => { currentSize = s; renderProductList(inDept(currentDept)); });
-      bar.appendChild(chip);
-    });
-    bar.hidden = false;
-  } else {
-    bar.hidden = true;
+// ---------- Open / close for modals, menu, bag ----------
+const openLayers = [];   // [{ el, opener }] most recent last
+function lockScroll() { document.body.classList.toggle("no-scroll", openLayers.length > 0); }
+function focusables(root) { return Array.from(root.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled])')).filter(e => e.offsetParent !== null || e === document.activeElement); }
+function openLayer(el, opener, focusEl) {
+  if (!openLayers.some(l => l.el === el)) openLayers.push({ el, opener: opener || document.activeElement });
+  lockScroll();
+  if (focusEl) focusEl.focus({ preventScroll: true });
+}
+function closeLayer(el) {
+  const i = openLayers.findIndex(l => l.el === el);
+  if (i === -1) return;
+  const opener = openLayers[i].opener;
+  openLayers.splice(i, 1);
+  lockScroll();
+  if (opener && opener.focus && document.contains(opener)) { try { opener.focus(); } catch (e) { /* ignore */ } }
+}
+function showModal(el, opener, focusEl) { el.classList.remove("hidden"); el.classList.add("flex"); openLayer(el, opener, focusEl); }
+function hideModal(el) { el.classList.add("hidden"); el.classList.remove("flex"); closeLayer(el); }
+function isShown(el) { return !el.classList.contains("hidden"); }
+
+document.addEventListener("keydown", (e) => {
+  const top = openLayers[openLayers.length - 1];
+  if (e.key === "Escape") {
+    if (top) { closeTop(top.el); return; }
+    if (isShown($("searchBar"))) closeSearch(false);
+    return;
   }
+  if (e.key === "Tab" && top && top.el.id !== "cartDrawer") {            // keep Tab inside the open dialog
+    const f = focusables(top.el);
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && (document.activeElement === first || !top.el.contains(document.activeElement))) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+});
+function closeTop(el) {
+  if (el.id === "mobileNav") closeMenu();
+  else if (el.id === "productModal") closeProduct();
+  else if (el.id === "checkoutModal") closeCheckout();
+  else if (el.id === "receiptModal") hideModal(el);          // Escape closes it but keeps the bag; only "Back To Storefront" empties the bag
+  else if (el.id === "cartDrawer") closeCart();
+}
 
-  const shown = currentSize ? list.filter(p => sizesFor(p).includes(currentSize)) : list;
+// ---------- Toasts ----------
+function showToast(message) {
+  const box = $("toastContainer");
+  const t = h("div", "bg-ragnar-card border border-ragnar-accent text-white px-4 py-3 rounded-lg shadow-2xl text-xs font-bold uppercase tracking-wider flex items-center gap-3 transition-opacity duration-300 pointer-events-auto");
+  t.appendChild(icon("circle-check", "text-ragnar-accent"));
+  t.appendChild(h("span", "", message));
+  box.appendChild(t);
+  setTimeout(() => { t.style.opacity = "0"; setTimeout(() => t.remove(), 300); }, 3000);
+}
+
+// ---------- Views: the store, Notices, Delivery & returns ----------
+const VIEWS = { home: "viewHome", notices: "viewNotices", info: "viewInfo" };
+function showView(name) {
+  Object.keys(VIEWS).forEach(k => { $(VIEWS[k]).hidden = k !== name; });
+}
+function navigate(id) {
+  if (id === "notices") { showView("notices"); window.scrollTo(0, 0); return; }
+  if (id === "info") { showView("info"); window.scrollTo(0, 0); return; }
+  showView("home");
+  const target = id ? $(id) : null;
+  if (target) target.scrollIntoView({ behavior: "smooth" }); else window.scrollTo(0, 0);
+}
+document.addEventListener("click", (e) => {
+  const a = e.target.closest('a[href^="#"]');
+  if (!a || a.target === "_blank") return;
+  e.preventDefault();
+  if (isShown($("mobileNav"))) closeMenu();
+  navigate(a.getAttribute("href").slice(1));
+});
+document.querySelectorAll(".back-home").forEach(b => b.addEventListener("click", () => navigate("")));
+$("noticeMore").addEventListener("click", () => navigate("notices"));
+
+// ---------- Phone menu ----------
+function openMenu() { const m = $("mobileNav"); showModal(m, $("mobileMenuBtn"), $("closeMobileNav")); $("mobileMenuBtn").setAttribute("aria-expanded", "true"); }
+function closeMenu() { hideModal($("mobileNav")); $("mobileMenuBtn").setAttribute("aria-expanded", "false"); }
+$("mobileMenuBtn").addEventListener("click", openMenu);
+$("closeMobileNav").addEventListener("click", closeMenu);
+
+// ---------- Search ----------
+function placeSearchBar() { $("searchBar").style.top = Math.max(0, document.querySelector("header").getBoundingClientRect().bottom) + "px"; }
+let searchScrolled = false;
+function openSearch() {
+  placeSearchBar();
+  $("searchBar").classList.remove("hidden");
+  $("searchBtn").setAttribute("aria-expanded", "true");
+  searchScrolled = false;
+  $("searchInput").focus();
+}
+function closeSearch(clear) {
+  $("searchBar").classList.add("hidden");
+  $("searchBtn").setAttribute("aria-expanded", "false");
+  if (clear) { $("searchInput").value = ""; filters.q = ""; renderProducts(); }
+}
+$("searchBtn").addEventListener("click", () => { if (isShown($("searchBar"))) closeSearch(false); else openSearch(); });
+$("closeSearch").addEventListener("click", () => closeSearch(true));
+window.addEventListener("scroll", () => { if (isShown($("searchBar"))) placeSearchBar(); }, { passive: true });
+$("searchInput").addEventListener("input", (e) => {
+  filters.q = e.target.value.trim().toLowerCase();
+  showView("home");
+  renderProducts();
+  if (filters.q && !searchScrolled) { searchScrolled = true; $("catalog").scrollIntoView({ behavior: "smooth" }); }
+});
+
+// ---------- Catalog: filters + grid ----------
+function matchesQuery(p, q) {
+  if (!q) return true;
+  const hay = [p.name, p.category, p.note, p.description].concat(audiencesFor(p)).concat(colorsFor(p).map(c => c.name)).join(" ").toLowerCase();
+  return q.split(/\s+/).every(w => hay.includes(w));
+}
+function scopeByAudience() { return filters.aud ? inDept(filters.aud) : products; }
+function renderFilters() {
+  const depts = DEPARTMENTS.filter(d => inDept(d).length > 0);
+  if (filters.aud && !depts.includes(filters.aud)) filters.aud = null;
+  const audRow = $("audRow");
+  audRow.innerHTML = "";
+  audRow.hidden = depts.length < 2;
+  if (depts.length >= 2) {
+    [null].concat(depts).forEach(d => {
+      const b = h("button", "aud-btn" + (d === filters.aud ? " active" : ""), d === null ? "Everyone" : d);
+      b.type = "button";
+      b.setAttribute("aria-pressed", d === filters.aud ? "true" : "false");
+      b.addEventListener("click", () => { filters.aud = d; renderFilters(); renderProducts(); });
+      audRow.appendChild(b);
+    });
+  }
+  const scope = scopeByAudience();
+  const cats = categoryOrder(scope).filter(c => scope.some(p => p.category === c));
+  if (filters.cat && !cats.includes(filters.cat)) filters.cat = null;
+  const row = $("catRow");
+  row.innerHTML = "";
+  [null].concat(cats).forEach(c => {
+    const b = h("button", "filter-btn" + (c === filters.cat ? " active" : ""), c === null ? "All Items" : c);
+    b.type = "button";
+    b.setAttribute("aria-pressed", c === filters.cat ? "true" : "false");
+    b.addEventListener("click", () => { filters.cat = c; renderFilters(); renderProducts(); });
+    row.appendChild(b);
+  });
+}
+
+function emptyState(msg, withIcon) {
+  const box = h("div", "col-span-full py-16 text-center text-ragnar-textMuted");
+  if (withIcon) box.appendChild(icon("box-open", "text-4xl mb-3 block mx-auto"));
+  box.appendChild(h("p", "uppercase text-sm tracking-wider font-bold", msg));
+  return box;
+}
+function noPhoto(cls) {
+  const box = h("div", cls + " bg-ragnar-dark flex items-center justify-center");
+  const img = h("img", "w-1/3 opacity-10");
+  img.src = "logo-mark.png"; img.alt = "";
+  box.appendChild(img);
+  return box;
+}
+function buildCard(p) {
+  const sold = isSoldOut(p), cover = coverImage(p);
+  const card = h("div", "product-card bg-ragnar-card border border-ragnar-border rounded-lg overflow-hidden group flex flex-col justify-between transition-transform duration-300");
+
+  const top = h("div", "relative overflow-hidden cursor-pointer");
+  top.addEventListener("click", () => openProduct(p, eyeBtn));
+  if (cover) {
+    const img = h("img", "product-img w-full h-56 sm:h-72 object-cover transition-transform duration-500" + (sold ? " opacity-50 grayscale" : ""));
+    img.src = cover; img.alt = p.name || ""; img.loading = "lazy"; img.decoding = "async";
+    top.appendChild(img);
+  } else {
+    top.appendChild(noPhoto("product-img w-full h-56 sm:h-72 transition-transform duration-500"));
+  }
+  if (sold) top.appendChild(h("span", "absolute top-3 left-3 bg-white text-black font-extrabold text-[9px] uppercase px-2 py-1 rounded tracking-wider", "Sold Out"));
+  else if (p.isNew === true) top.appendChild(h("span", "absolute top-3 left-3 bg-ragnar-accent text-black font-extrabold text-[9px] uppercase px-2 py-1 rounded tracking-wider", "New Drop"));
+  const eyeBtn = h("button", "absolute bottom-3 right-3 bg-black/80 hover:bg-ragnar-accent hover:text-black text-white p-2.5 rounded-full backdrop-blur transition shadow");
+  eyeBtn.type = "button";
+  eyeBtn.setAttribute("aria-label", "Quick view " + (p.name || "item"));
+  eyeBtn.appendChild(icon("eye", "text-xs"));
+  eyeBtn.addEventListener("click", (e) => { e.stopPropagation(); openProduct(p, eyeBtn); });
+  top.appendChild(eyeBtn);
+  card.appendChild(top);
+
+  const body = h("div", "p-4 flex flex-col flex-1 justify-between");
+  const info = h("div");
+  info.appendChild(h("span", "text-[10px] text-ragnar-accent uppercase font-bold tracking-widest block mb-1", p.category || ""));
+  info.appendChild(h("h3", "font-syne font-bold text-sm uppercase text-white line-clamp-1 group-hover:text-ragnar-accent transition", p.name || ""));
+  body.appendChild(info);
+
+  const span = priceSpan(p, autoSize(p), autoColor(p));
+  const foot = h("div", "mt-4 flex items-center justify-between gap-2 pt-3 border-t border-ragnar-border");
+  const priceBox = h("div", "min-w-0");
+  if (span.lo !== span.hi) priceBox.appendChild(h("span", "block text-[9px] text-ragnar-textMuted uppercase tracking-widest font-bold", "From"));
+  priceBox.appendChild(h("span", "font-syne font-extrabold text-sm sm:text-base text-white block", fmtR(span.lo)));
+  foot.appendChild(priceBox);
+  const add = h("button", "bg-ragnar-dark border border-ragnar-border hover:border-ragnar-accent text-white hover:text-ragnar-accent text-xs font-bold uppercase px-2.5 sm:px-3 py-1.5 rounded transition whitespace-nowrap shrink-0", sold ? "Sold out" : "Add +");
+  add.type = "button";
+  add.setAttribute("aria-label", (sold ? "Sold out: " : "Add to bag: ") + (p.name || "item"));
+  if (sold) { add.disabled = true; add.classList.add("opacity-50", "cursor-not-allowed"); }
+  else add.addEventListener("click", () => quickAdd(p, add));
+  foot.appendChild(add);
+  body.appendChild(foot);
+  card.appendChild(body);
+  return card;
+}
+function renderProducts() {
+  const grid = $("productGrid");
   grid.innerHTML = "";
-  if (shown.length === 0) { grid.innerHTML = '<p class="empty-note">Nothing here yet — check back soon.</p>'; return; }
-  shown.forEach(p => grid.appendChild(buildProductCard(p)));
+  if (catalogFailed) { grid.appendChild(emptyState("The catalog is temporarily unavailable.", true)); return; }
+  if (!catalogLoaded) { grid.appendChild(emptyState("Loading…", false)); return; }
+  const shown = scopeByAudience().filter(p => (!filters.cat || p.category === filters.cat) && matchesQuery(p, filters.q));
+  if (shown.length === 0) {
+    grid.appendChild(emptyState(products.length === 0 ? "Nothing in the store yet. Check back soon." : "No streetwear items matched your query.", true));
+    return;
+  }
+  shown.forEach(p => grid.appendChild(buildCard(p)));
+}
+
+// "Add +" on a card: add straight away when there is nothing to choose, otherwise open the quick view to choose.
+function quickAdd(p, opener) {
+  const size = autoSize(p), colors = colorsFor(p);
+  if (size && colors.length <= 1) addToCart(p, size, autoColor(p));
+  else openProduct(p, opener);
+}
+
+// ---------- Quick view ----------
+let modal = { p: null, size: null, color: null };
+function modalPhoto(src, alt) {
+  const img = $("modalImage"), none = $("modalNoImage");
+  if (src) { img.src = src; img.alt = alt || ""; img.hidden = false; none.hidden = true; }
+  else { img.removeAttribute("src"); img.hidden = true; none.hidden = false; }
+}
+function paintModalPrice() {
+  const s = priceSpan(modal.p, modal.size, modal.color);
+  $("modalPrice").textContent = (s.lo === s.hi ? "" : "From ") + fmtR(s.lo);
+}
+function openProduct(p, opener) {
+  const sold = isSoldOut(p), sizes = sizesFor(p), colors = colorsFor(p);
+  modal = { p, size: autoSize(p), color: autoColor(p) };
+  $("modalCategory").textContent = p.category || "";
+  $("modalTitle").textContent = p.name || "";
+  const desc = (p.description || "").trim() || (p.note || "").trim();
+  $("modalDesc").textContent = desc;
+  $("modalDesc").hidden = !desc;
+  $("modalError").textContent = "";
+  const cover = coverImage(p);
+  modalPhoto(modal.color && modal.color.image ? modal.color.image : cover, p.name);
+
+  const cWrap = $("colorWrap"), cBox = $("colorOptions");
+  cBox.innerHTML = "";
+  cWrap.hidden = colors.length === 0;
+  $("colorLabel").textContent = colors.length === 1 ? "Colour" : "Select Colour";
+  colors.forEach(c => {
+    const b = h("button", "size-btn" + (c === modal.color || (modal.color && c.name === modal.color.name) ? " active" : ""), c.name);
+    b.type = "button";
+    b.disabled = sold || c.soldOut;
+    if (c.soldOut) b.setAttribute("aria-label", c.name + " (sold out)");
+    b.setAttribute("aria-pressed", modal.color && c.name === modal.color.name ? "true" : "false");
+    b.addEventListener("click", () => {
+      cBox.querySelectorAll("button").forEach(x => { x.classList.remove("active"); x.setAttribute("aria-pressed", "false"); });
+      b.classList.add("active"); b.setAttribute("aria-pressed", "true");
+      modal.color = c;
+      $("modalError").textContent = "";
+      modalPhoto(c.image || cover, (p.name || "") + " — " + c.name);
+      paintModalPrice();
+    });
+    cBox.appendChild(b);
+  });
+
+  const sBox = $("sizeOptions");
+  sBox.innerHTML = "";
+  $("sizeLabel").textContent = sizes.length === 1 ? "Size" : "Select Size";
+  sizes.forEach(s => {
+    const b = h("button", "size-btn" + (s === modal.size ? " active" : ""), s);
+    b.type = "button";
+    b.disabled = sold;
+    b.setAttribute("aria-pressed", s === modal.size ? "true" : "false");
+    b.addEventListener("click", () => {
+      sBox.querySelectorAll("button").forEach(x => { x.classList.remove("active"); x.setAttribute("aria-pressed", "false"); });
+      b.classList.add("active"); b.setAttribute("aria-pressed", "true");
+      modal.size = s;
+      $("modalError").textContent = "";
+      paintModalPrice();
+    });
+    sBox.appendChild(b);
+  });
+  paintModalPrice();
+  const addBtn = $("addToCartModalBtn");
+  addBtn.disabled = sold;
+  $("addToCartLabel").textContent = sold ? "Sold Out" : "Add To Bag";
+  showModal($("productModal"), opener, $("closeProductModal"));
+}
+function closeProduct() { hideModal($("productModal")); }
+$("closeProductModal").addEventListener("click", closeProduct);
+$("productModal").addEventListener("click", (e) => { if (e.target === $("productModal")) closeProduct(); });
+$("addToCartModalBtn").addEventListener("click", () => {
+  const { p, size, color } = modal;
+  if (!p || isSoldOut(p)) return;
+  const colors = colorsFor(p), err = $("modalError");
+  if (colors.length && !color && !size) { err.textContent = "Pick a colour and a size first."; return; }
+  if (colors.length && !color) { err.textContent = "Pick a colour first."; return; }
+  if (!size) { err.textContent = "Pick a size first."; return; }
+  closeProduct();
+  addToCart(p, size, color);
+});
+
+// ---------- Bag ----------
+const QTY_MAX = 20;
+let method = "Delivery";
+// What delivery costs for the chosen method. fee === null means the owner hasn't set a fee, so the total can't include it yet.
+function deliveryFor(m) {
+  if (m === "Collection") return { fee: 0, label: "Collection, no fee", msg: "Collection (no fee)" };
+  const f = siteInfo.deliveryFee;
+  if (f === null) return { fee: null, label: "To be confirmed", msg: "to be confirmed (please tell me the cost)" };
+  const text = f === 0 ? "Free" : fmtR(f);
+  return { fee: f, label: text, msg: text };
+}
+function cartItemsTotal() { return cart.reduce((s, i) => s + i.price * i.qty, 0); }
+function renderCart() {
+  const box = $("cartItemsContainer");
+  $("cartBadgeCount").textContent = cart.reduce((s, i) => s + i.qty, 0);
+  box.innerHTML = "";
+  if (cart.length === 0) {
+    const empty = h("div", "text-center py-12 text-ragnar-textMuted");
+    empty.appendChild(icon("bag-shopping", "text-4xl mb-3 block opacity-40 mx-auto"));
+    empty.appendChild(h("p", "uppercase text-xs font-bold tracking-wider", "Your shopping bag is currently empty."));
+    box.appendChild(empty);
+  }
+  cart.forEach((item, idx) => {
+    const row = h("div", "flex items-center gap-4 bg-ragnar-black p-3 rounded-lg border border-ragnar-border");
+    if (item.image) { const im = h("img", "w-16 h-16 object-cover rounded"); im.src = item.image; im.alt = item.name; row.appendChild(im); }
+    else row.appendChild(noPhoto("w-16 h-16 rounded shrink-0"));
+    const mid = h("div", "flex-1 min-w-0");
+    mid.appendChild(h("h4", "font-syne font-bold text-xs uppercase text-white truncate", item.name));
+    const meta = h("p", "text-[10px] text-ragnar-textMuted uppercase mt-0.5");
+    meta.appendChild(document.createTextNode("Size: "));
+    meta.appendChild(h("span", "text-ragnar-accent font-bold", item.size));
+    if (item.color) {
+      meta.appendChild(document.createTextNode(" · Colour: "));
+      meta.appendChild(h("span", "text-ragnar-accent font-bold", item.color));
+    }
+    mid.appendChild(meta);
+    mid.appendChild(h("p", "font-bold text-xs text-white mt-1", fmtR(item.price * item.qty)));
+    row.appendChild(mid);
+    const side = h("div", "flex flex-col items-end gap-2");
+    const rm = h("button", "text-ragnar-textMuted hover:text-red-500 text-xs");
+    rm.type = "button"; rm.setAttribute("aria-label", "Remove " + item.name + " from your bag");
+    rm.appendChild(icon("trash-can"));
+    rm.addEventListener("click", () => { cart.splice(idx, 1); renderCart(); });
+    const qty = h("div", "flex items-center border border-ragnar-border rounded bg-ragnar-card");
+    const minus = h("button", "px-2 py-0.5 text-xs text-ragnar-textMuted hover:text-white", "-");
+    minus.type = "button"; minus.setAttribute("aria-label", "One less " + item.name);
+    minus.addEventListener("click", () => { item.qty -= 1; if (item.qty <= 0) cart.splice(idx, 1); renderCart(); });
+    const plus = h("button", "px-2 py-0.5 text-xs text-ragnar-textMuted hover:text-white", "+");
+    plus.type = "button"; plus.setAttribute("aria-label", "One more " + item.name);
+    plus.addEventListener("click", () => { if (item.qty < QTY_MAX) { item.qty += 1; renderCart(); } });
+    qty.appendChild(minus); qty.appendChild(h("span", "px-2 text-xs font-bold text-white", String(item.qty))); qty.appendChild(plus);
+    side.appendChild(rm); side.appendChild(qty);
+    row.appendChild(side);
+    box.appendChild(row);
+  });
+
+  const sub = cartItemsTotal();
+  const d = deliveryFor(method);
+  $("cartSubtotal").textContent = fmtR(sub);
+  $("cartShippingLabel").textContent = method === "Collection" ? "Collection" : "Delivery";
+  $("cartShipping").textContent = cart.length ? d.label : "—";
+  const label = cart.length && d.fee === null ? "Total (excl. delivery)" : "Grand Total";
+  const total = cart.length ? sub + (d.fee || 0) : 0;
+  $("cartGrandLabel").textContent = label;
+  $("cartGrandTotal").textContent = fmtR(total);
+  $("checkoutTotalLabel").textContent = label.replace("Grand ", "");
+  $("checkoutTotal").textContent = fmtR(total);
+}
+function addToCart(p, size, color) {
+  const colorName = color ? color.name : "";
+  const existing = cart.find(i => i.id === p.id && i.size === size && i.color === colorName);   // same item, size AND colour = one line
+  if (existing) { if (existing.qty < QTY_MAX) existing.qty += 1; }
+  else cart.push({ id: p.id, name: p.name, price: priceFor(p, size, color), size, color: colorName, image: (color && color.image) || coverImage(p), qty: 1 });
+  renderCart();
+  showToast("Added " + p.name + " (" + size + (colorName ? ", " + colorName : "") + ") to your bag!");
+  openCart();
+}
+function openCart(opener) {
+  const d = $("cartDrawer");
+  d.classList.remove("translate-x-full");
+  d.classList.add("is-open");
+  $("cartScrim").classList.remove("hidden");
+  $("cartToggleBtn").setAttribute("aria-expanded", "true");
+  openLayer(d, opener || $("cartToggleBtn"), $("closeCartBtn"));
+}
+function closeCart() {
+  const d = $("cartDrawer");
+  d.classList.add("translate-x-full");
+  d.classList.remove("is-open");
+  $("cartScrim").classList.add("hidden");
+  $("cartToggleBtn").setAttribute("aria-expanded", "false");
+  closeLayer(d);
+}
+$("cartToggleBtn").addEventListener("click", () => openCart());
+$("closeCartBtn").addEventListener("click", closeCart);
+$("cartScrim").addEventListener("click", closeCart);
+
+// ---------- Delivery details (kept on the customer's own device only) ----------
+const DETAILS_KEY = "ragnar_delivery_details";
+const FIELD_IDS = { name: "custName", phone: "custPhone", street: "custStreet", suburb: "custSuburb", city: "custCity", province: "custProvince", postal: "custPostal", notes: "custNotes" };
+const val = (k) => $(FIELD_IDS[k]).value.trim();
+const radioVal = (name) => { const r = document.querySelector('#checkoutForm input[name="' + name + '"]:checked'); return r ? r.value : ""; };
+function toggleAddress() {
+  method = radioVal("method") || "Delivery";
+  $("addressFields").hidden = method === "Collection";
+  renderCart();
+}
+function saveDetails() {
+  const data = { method: radioVal("method"), pay: radioVal("payMethod") };
+  Object.keys(FIELD_IDS).forEach(k => { data[k] = val(k); });
+  try { localStorage.setItem(DETAILS_KEY, JSON.stringify(data)); } catch (e) { /* storage blocked — fine */ }
+}
+function loadDetails() {
+  let data = null;
+  try { data = JSON.parse(localStorage.getItem(DETAILS_KEY) || "null"); } catch (e) { /* ignore */ }
+  if (!data || typeof data !== "object") return;
+  Object.keys(FIELD_IDS).forEach(k => { if (typeof data[k] === "string" && data[k]) $(FIELD_IDS[k]).value = data[k]; });
+  const pick = (name, v) => { const r = Array.from(document.querySelectorAll('#checkoutForm input[name="' + name + '"]')).find(x => x.value === v); if (r) r.checked = true; };
+  if (data.method) pick("method", data.method);
+  if (data.pay) pick("payMethod", data.pay);
+}
+$("checkoutForm").addEventListener("input", saveDetails);
+$("checkoutForm").addEventListener("change", () => { saveDetails(); toggleAddress(); });
+loadDetails();
+toggleAddress();
+
+function openCheckout() {
+  if (cart.length === 0) { showToast("Add items to your bag first!"); return; }
+  closeCart();
+  $("checkoutError").textContent = "";
+  toggleAddress();
+  showModal($("checkoutModal"), $("proceedCheckoutBtn"), $("custName"));
+}
+function closeCheckout() { hideModal($("checkoutModal")); }
+$("proceedCheckoutBtn").addEventListener("click", openCheckout);
+$("closeCheckoutModal").addEventListener("click", closeCheckout);
+
+function validateDetails() {
+  const required = ["name", "phone"];
+  if (method === "Delivery") required.push("street", "suburb", "city", "province", "postal");
+  Object.keys(FIELD_IDS).forEach(k => $(FIELD_IDS[k]).classList.remove("invalid"));
+  let firstBad = null;
+  required.forEach(k => { if (!val(k)) { $(FIELD_IDS[k]).classList.add("invalid"); if (!firstBad) firstBad = $(FIELD_IDS[k]); } });
+  if (firstBad) {
+    $("checkoutError").textContent = "Please fill in the highlighted fields so we can deliver your order.";
+    firstBad.scrollIntoView({ block: "center", behavior: "smooth" });
+    firstBad.focus();
+    return false;
+  }
+  $("checkoutError").textContent = "";
+  return true;
+}
+
+let lastOrderUrl = "";
+$("checkoutForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  if (cart.length === 0) return;
+  toggleAddress();
+  if (!validateDetails()) return;
+  saveDetails();
+  const ref = "RAG-" + Math.floor(100000 + Math.random() * 900000);   // shown to the shopper and sent in the message; never stored anywhere
+  const pay = radioVal("payMethod") || "Yoco card link";
+  const lines = cart.map(i => `- ${i.name} (Size: ${i.size}${i.color ? ", Colour: " + i.color : ""}) x${i.qty} — ${fmtR(i.price * i.qty)}`).join("\n");
+  const itemsTotal = cartItemsTotal();
+  const dl = deliveryFor(method);
+  const totalText = dl.fee === null ? `Total (excl. delivery): ${fmtR(itemsTotal)}` : `Total: ${fmtR(itemsTotal + dl.fee)}`;
+  const totals = `Items: ${fmtR(itemsTotal)}\nDelivery: ${dl.msg}\n${totalText}`;
+  let details = `Name: ${val("name")}\nContact: ${val("phone")}\nMethod: ${method === "Collection" ? "I'll collect" : "Delivery"}`;
+  let addr = "";
+  if (method === "Delivery") {
+    addr = `${val("street")}, ${val("suburb")}, ${val("city")}, ${val("province")}, ${val("postal")}`;
+    details += `\nAddress: ${addr}`;
+    if (val("notes")) details += `\nNotes: ${val("notes")}`;
+  }
+  const msg = `Hi! I'd like to order (ref ${ref}):\n${lines}\n\n${totals}\nPayment: ${pay}\n\n${details}`;
+  lastOrderUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+  window.open(lastOrderUrl, "_blank");
+  closeCheckout();
+  showReceipt(ref, addr, pay, totalText);
+});
+
+function showReceipt(ref, addr, pay, totalText) {
+  $("receiptRef").textContent = "#" + ref;
+  $("receiptRetry").href = lastOrderUrl;
+  const box = $("receiptDetails");
+  box.innerHTML = "";
+  const row = (label, text) => {
+    const p = h("p");
+    p.appendChild(h("strong", "text-white", label + " "));
+    p.appendChild(document.createTextNode(text));
+    box.appendChild(p);
+  };
+  row("Customer:", val("name"));
+  row("Contact:", val("phone"));
+  row(method === "Collection" ? "Delivery:" : "Address:", method === "Collection" ? "I'll collect" : addr);
+  row("Payment:", pay);
+  box.appendChild(h("hr", "border-ragnar-border my-2"));
+  box.appendChild(h("p", "text-white font-bold", "Line Items:"));
+  cart.forEach(i => box.appendChild(h("p", "", "• " + i.name + " [" + i.size + (i.color ? ", " + i.color : "") + "] x" + i.qty + " - " + fmtR(i.price * i.qty))));
+  box.appendChild(h("hr", "border-ragnar-border my-2"));
+  box.appendChild(h("p", "text-sm font-bold text-ragnar-accent", totalText.replace("Total", "TOTAL DUE")));
+  showModal($("receiptModal"), $("cartToggleBtn"), $("closeReceiptBtn"));
+}
+$("closeReceiptBtn").addEventListener("click", () => { cart = []; renderCart(); hideModal($("receiptModal")); });
+$("downloadReceiptBtn").addEventListener("click", () => window.print());
+
+// ---------- Home page text, hero photo, countdown, socials (written by the owner in admin -> Homepage) ----------
+const HOME_TEXT = {   // settings key -> [element id, max length]
+  announcement: ["announceText", 120], heroBadge: ["heroBadge", 60], heroTitle: ["heroTitle", 30], heroAccent: ["heroAccent", 30], heroText: ["heroText", 240],
+  aboutTitle: ["aboutTitle", 60], aboutText: ["aboutText", 400],
+  f1Title: ["f1Title", 40], f1Text: ["f1Text", 200], f2Title: ["f2Title", 40], f2Text: ["f2Text", 200], f3Title: ["f3Title", 40], f3Text: ["f3Text", 200]
+};
+const HOME_DEFAULTS = {};
+Object.keys(HOME_TEXT).forEach(k => { HOME_DEFAULTS[k] = $(HOME_TEXT[k][0]).textContent.trim(); });   // the wording written in index.html is the fallback
+function safeSocial(url, hosts) {
+  try {
+    const u = new URL(url);
+    return u.protocol === "https:" && hosts.includes(u.hostname) ? u.href : "";
+  } catch (e) { return ""; }
+}
+let dropAt = null, cdTimer = null;
+function stopCountdown() { clearInterval(cdTimer); cdTimer = null; dropAt = null; $("countdown").hidden = true; }
+function tickCountdown() {
+  const left = dropAt - Date.now();
+  if (!(left > 0)) { stopCountdown(); return; }
+  const s = Math.floor(left / 1000), pad = (n) => String(n).padStart(2, "0");
+  $("cdDays").textContent = pad(Math.floor(s / 86400));
+  $("cdHours").textContent = pad(Math.floor((s % 86400) / 3600));
+  $("cdMins").textContent = pad(Math.floor((s % 3600) / 60));
+  $("cdSecs").textContent = pad(s % 60);
+}
+function setDrop(ms) {
+  stopCountdown();
+  if (typeof ms === "number" && Number.isFinite(ms) && ms > Date.now()) {   // a countdown only ever shows a real, future date the owner set
+    dropAt = ms;
+    $("countdown").hidden = false;
+    tickCountdown();
+    cdTimer = setInterval(tickCountdown, 1000);
+  }
+}
+function applyHome(data) {
+  const d = data || {};
+  Object.keys(HOME_TEXT).forEach(k => {
+    const v = typeof d[k] === "string" ? d[k].trim().slice(0, HOME_TEXT[k][1]) : "";
+    $(HOME_TEXT[k][0]).textContent = v || HOME_DEFAULTS[k];
+  });
+  $("announceBar").hidden = d.announcementHidden === true || noticeShowing;
+  setDrop(d.dropDate);
+  [["socIg", d.instagramUrl, ["instagram.com", "www.instagram.com"]], ["socTt", d.tiktokUrl, ["tiktok.com", "www.tiktok.com", "vm.tiktok.com"]]].forEach(([id, raw, hosts]) => {
+    const link = typeof raw === "string" ? safeSocial(raw.trim(), hosts) : "";
+    $(id).hidden = !link;
+    if (link) $(id).href = link;
+  });
+  homeData = d;
+}
+let homeData = {};
+function applyHeroPhoto(data) {
+  const src = safeImage(data && data.image);
+  $("heroBg").style.backgroundImage = src ? 'url("' + src + '")' : "";
+  $("heroMark").hidden = !!src;
 }
 
 // ---------- Notices & community link (posted from admin.html) ----------
 let notices = [];
 let noticesFailed = false;
+let noticeShowing = false;
 const DISMISS_KEY = "ragnar_dismissed_notice";
-
 function isLive(n) {
   if (n.active === false) return false;
   if (n.expiresAt && n.expiresAt < Date.now()) return false;
@@ -515,66 +713,61 @@ function safeWhatsAppLink(url) {
     return u.protocol === "https:" && hostOk ? u.href : "";
   } catch (e) { return ""; }
 }
-function fmtDate(ms) {
-  return new Date(ms).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" });
-}
+function fmtDate(ms) { return new Date(ms).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" }); }
 
 function renderBanner(live) {
-  const el = document.getElementById("notice-banner");
+  const el = $("noticeBanner");
   const top = live.find(n => n.level === "important");
   let dismissed = null;
   try { dismissed = localStorage.getItem(DISMISS_KEY); } catch (e) { /* storage blocked — fine */ }
-  if (!top || top.id === dismissed) { el.hidden = true; return; }
-  el.dataset.id = top.id;
-  document.getElementById("notice-banner-title").textContent = top.title || "Notice";
-  document.getElementById("notice-banner-text").textContent = top.message || "";
-  el.hidden = false;
+  if (!top || top.id === dismissed) { el.hidden = true; noticeShowing = false; }
+  else {
+    el.dataset.id = top.id;
+    $("noticeTitle").textContent = top.title || "Notice";
+    $("noticeText").textContent = top.message || "";
+    el.hidden = false; noticeShowing = true;
+  }
+  $("announceBar").hidden = homeData.announcementHidden === true || noticeShowing;
 }
-
 function renderNotices() {
-  const list = document.getElementById("notice-list");
+  const list = $("noticeList");
   const live = noticesFailed ? [] : notices.filter(isLive);
   list.innerHTML = "";
-  if (noticesFailed) {
-    list.innerHTML = '<p class="empty-note">Notices are unavailable right now.</p>';
-  } else if (live.length === 0) {
-    list.innerHTML = '<p class="empty-note">No notices right now.</p>';
-  }
+  if (noticesFailed) list.appendChild(h("p", "text-sm text-ragnar-textMuted", "Notices are unavailable right now."));
+  else if (live.length === 0) list.appendChild(h("p", "text-sm text-ragnar-textMuted", "No notices right now."));
   live.forEach(n => {
-    const card = document.createElement("article");
-    card.className = "notice-card" + (n.level === "important" ? " important" : "");
-    card.innerHTML = '<div class="notice-meta"><span class="notice-tag"></span><time></time></div><h3></h3><p></p>';
-    card.querySelector(".notice-tag").textContent = n.level === "important" ? "Important" : "Update";
-    card.querySelector("time").textContent = n.createdAt ? fmtDate(n.createdAt) : "";
-    card.querySelector("h3").textContent = n.title || "";
-    card.querySelector("p").textContent = n.message || "";
+    const important = n.level === "important";
+    const card = h("article", "bg-ragnar-card border rounded-lg p-5 " + (important ? "border-ragnar-accent" : "border-ragnar-border"));
+    const meta = h("div", "flex items-center justify-between gap-3 mb-2");
+    meta.appendChild(h("span", "text-[10px] font-bold uppercase tracking-widest " + (important ? "text-ragnar-accent" : "text-ragnar-textMuted"), important ? "Important" : "Update"));
+    meta.appendChild(h("time", "text-[11px] text-ragnar-textMuted", n.createdAt ? fmtDate(n.createdAt) : ""));
+    card.appendChild(meta);
+    card.appendChild(h("h3", "font-syne font-bold uppercase text-white mb-1", n.title || ""));
+    card.appendChild(h("p", "text-sm text-ragnar-textMuted leading-relaxed whitespace-pre-line", n.message || ""));
     list.appendChild(card);
   });
   renderBanner(live);
 }
+$("noticeClose").addEventListener("click", () => {
+  const el = $("noticeBanner");
+  try { localStorage.setItem(DISMISS_KEY, el.dataset.id || ""); } catch (e) { /* ignore */ }
+  el.hidden = true; noticeShowing = false;
+  $("announceBar").hidden = homeData.announcementHidden === true;
+});
 
-// ---------- Store info page: delivery, returns, contact, privacy (written by the owner in admin -> Store info) ----------
+// ---------- Delivery, returns, contact, privacy (written by the owner in admin -> Store info) ----------
 const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
 function infoSection(title) {
-  const sec = document.createElement("section");
-  sec.className = "info-section";
-  const h = document.createElement("h3");
-  h.textContent = title;
-  sec.appendChild(h);
+  const sec = h("section", "bg-ragnar-card border border-ragnar-border rounded-lg p-6");
+  sec.appendChild(h("h3", "font-syne font-bold uppercase text-white mb-3", title));
   return sec;
 }
-function infoText(sec, text) {
-  const p = document.createElement("p");
-  p.className = "info-text";
-  p.textContent = text;                       // textContent only: owner-written text can never inject markup
-  sec.appendChild(p);
-}
+function infoText(sec, text) { sec.appendChild(h("p", "text-sm text-ragnar-textMuted leading-relaxed whitespace-pre-line mb-3", text)); }
 function hasContact(s) { return !!(s.bizName || s.bizAddress || s.bizPhone || s.bizEmail || s.bizReg); }
 function hasInfo(s) { return s.deliveryFee !== null || !!(s.deliveryText || s.returnsText || s.privacyText) || hasContact(s); }
 
 function renderInfo() {
-  const root = document.getElementById("info-sections");
-  const s = siteInfo;
+  const root = $("infoSections"), s = siteInfo;
   root.innerHTML = "";
   if (s.deliveryFee !== null || s.deliveryText) {
     const sec = infoSection("Delivery");
@@ -582,21 +775,14 @@ function renderInfo() {
     if (s.deliveryText) infoText(sec, s.deliveryText);
     root.appendChild(sec);
   }
-  if (s.returnsText) {
-    const sec = infoSection("Returns & refunds");
-    infoText(sec, s.returnsText);
-    root.appendChild(sec);
-  }
+  if (s.returnsText) { const sec = infoSection("Returns & refunds"); infoText(sec, s.returnsText); root.appendChild(sec); }
   if (hasContact(s)) {
     const sec = infoSection("Contact");
-    const dl = document.createElement("dl");
-    dl.className = "info-contact";
+    const dl = h("dl", "grid grid-cols-[auto,1fr] gap-x-6 gap-y-2 text-sm mb-4");
     const row = (label, value, href) => {
-      const dt = document.createElement("dt"), dd = document.createElement("dd");
-      dt.textContent = label;
-      if (href) { const a = document.createElement("a"); a.href = href; a.textContent = value; dd.appendChild(a); }
-      else dd.textContent = value;
-      dl.appendChild(dt); dl.appendChild(dd);
+      const dd = h("dd", "text-white break-words");
+      if (href) { const a = h("a", "text-ragnar-accent hover:underline", value); a.href = href; dd.appendChild(a); } else dd.textContent = value;
+      dl.appendChild(h("dt", "text-ragnar-textMuted uppercase text-[11px] font-bold tracking-wider pt-0.5", label)); dl.appendChild(dd);
     };
     if (s.bizName) row("Business", s.bizName);
     if (s.bizAddress) row("Address", s.bizAddress);
@@ -604,69 +790,55 @@ function renderInfo() {
     if (s.bizEmail) row("Email", s.bizEmail, EMAIL_RE.test(s.bizEmail) ? "mailto:" + s.bizEmail : "");
     if (s.bizReg) row("Registration no.", s.bizReg);
     sec.appendChild(dl);
-    const wa = document.createElement("a");
-    wa.className = "btn";
-    wa.href = "https://wa.me/" + WHATSAPP_NUMBER;
-    wa.target = "_blank"; wa.rel = "noopener";
-    wa.textContent = "Message us on WhatsApp";
+    const wa = h("a", "btn-gold px-6 py-3 text-xs inline-block", "Message us on WhatsApp");
+    wa.href = "https://wa.me/" + WHATSAPP_NUMBER; wa.target = "_blank"; wa.rel = "noopener";
     sec.appendChild(wa);
     root.appendChild(sec);
   }
-  if (s.privacyText) {
-    const sec = infoSection("Privacy");
-    infoText(sec, s.privacyText);
-    root.appendChild(sec);
-  }
-  // The Info link, footer link and cart link only exist while there is something to show.
+  if (s.privacyText) { const sec = infoSection("Privacy"); infoText(sec, s.privacyText); root.appendChild(sec); }
+  // The links to this page only exist while there is something to show.
   const show = hasInfo(s);
-  document.querySelector('.nav-link[data-page="info"]').hidden = !show;
-  document.getElementById("footer-info").hidden = !show;
-  document.getElementById("cart-info-link").hidden = !show;
-  if (!show && document.getElementById("page-info").classList.contains("active")) goHome();
+  $("footerInfo").hidden = !show;
+  $("mobileInfoLink").hidden = !show;
+  if (!show && !$("viewInfo").hidden) navigate("");
+  $("deliveryHint").textContent = s.deliveryFee === null ? "Fee confirmed on WhatsApp" : (s.deliveryFee === 0 ? "Free delivery" : "Delivery fee " + fmtR(s.deliveryFee));
 }
 
-document.getElementById("notice-banner-more").addEventListener("click", goNotices);
-document.getElementById("notice-banner-close").addEventListener("click", () => {
-  const el = document.getElementById("notice-banner");
-  try { localStorage.setItem(DISMISS_KEY, el.dataset.id || ""); } catch (e) { /* ignore */ }
-  el.hidden = true;
-});
-
+// ---------- Live from Firestore — public read, write locked to the signed-in admin only (see firestore.rules) ----------
 db.collection("notices").orderBy("createdAt", "desc").limit(30).onSnapshot(
   (snap) => { notices = snap.docs.map(d => ({ id: d.id, ...d.data() })); noticesFailed = false; renderNotices(); },
   () => { noticesFailed = true; renderNotices(); }
 );
-
 db.doc("settings/site").onSnapshot(
   (snap) => {
     const data = snap.exists ? (snap.data() || {}) : {};
     const nextCats = cleanCategories(data.categories);
-    if (JSON.stringify(nextCats) !== JSON.stringify(categories)) {   // only redraw when the list really changed
-      categories = nextCats;
-      if (catalogLoaded && currentDept) renderCategoryPage();
-    }
-    const raw = data.communityLink || "";
-    const link = safeWhatsAppLink(raw);
-    document.getElementById("community-box").hidden = !link;
-    document.getElementById("footer-community").hidden = !link;
-    if (link) {
-      document.getElementById("community-btn").href = link;
-      document.getElementById("footer-community").href = link;
-    }
+    if (JSON.stringify(nextCats) !== JSON.stringify(categories)) { categories = nextCats; if (catalogLoaded) { renderFilters(); renderProducts(); } }
+    const link = safeWhatsAppLink(data.communityLink || "");
+    $("communityBox").hidden = !link;
+    $("footerCommunity").hidden = !link;
+    if (link) { $("communityBtn").href = link; $("footerCommunity").href = link; }
     siteInfo = parseSiteInfo(data);
+    applyHome(data);
     renderInfo();
     renderCart();                            // the delivery fee may have changed
   },
-  () => { /* settings unreadable — simply no community button */ }
+  () => { /* settings unreadable — the store simply shows its built-in wording */ }
 );
-
-// Live from Firestore — public read, write locked to the signed-in admin only (see firestore.rules)
+db.doc("settings/hero").onSnapshot(
+  (snap) => applyHeroPhoto(snap.exists ? snap.data() : null),
+  () => { /* no hero photo */ }
+);
 db.collection("products").orderBy("createdAt", "asc").onSnapshot(
   (snap) => {
     products = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    catalogLoaded = true;
-    renderHomeTiles();
-    if (currentDept) renderCategoryPage();
+    catalogLoaded = true; catalogFailed = false;
+    renderFilters(); renderProducts();
   },
-  () => { document.getElementById("home-tiles").innerHTML = '<p class="empty-note">Catalog is temporarily unavailable.</p>'; }
+  () => { catalogFailed = true; renderProducts(); }
 );
+
+// ---------- Start-up ----------
+document.querySelectorAll(".yr").forEach(e => { e.textContent = String(new Date().getFullYear()); });
+renderFilters();
+renderCart();
